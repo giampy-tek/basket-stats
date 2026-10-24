@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { go, Hero, Modal, Field } from '../ui'
+import { Modal, Field, go } from '../ui'
+import { AccountModal, SyncBadge } from './Account'
+import { cloudEnabled } from '../cloud'
 
 export default function Dashboard() {
   const { clubName, seasons, seasonId, setClubName, resetAll, importAll } = useStore()
   const season = seasons.find((s) => s.id === seasonId)
   const [open, setOpen] = useState(false)
+  const [acc, setAcc] = useState(false)
   const [name, setName] = useState(clubName)
   const backup = () => {
     const { clubName, players, seasons, games, seasonId } = useStore.getState()
@@ -36,6 +39,11 @@ export default function Dashboard() {
         {season && <div style={{ marginTop: 14, opacity: .9 }}>{season.year} · {season.category}</div>}
       </div>
       <div className="page" style={{ paddingTop: 40 }}>
+        {cloudEnabled && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+            <button className="pill" style={{ background: 'var(--brand)' }} onClick={() => setAcc(true)}><SyncBadge /></button>
+          </div>
+        )}
         <div className="grid2">
           <button className="card tile" onClick={() => go('/seasons')}>
             <div><h2>Stagioni</h2><div className="hint">Partite e statistiche</div></div>
@@ -59,6 +67,7 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+      {acc && <AccountModal onClose={() => setAcc(false)} />}
       {open && (
         <Modal title="Impostazioni" onClose={() => setOpen(false)}>
           <Field label="Nome del club"><input value={name} onChange={(e) => setName(e.target.value)} /></Field>
