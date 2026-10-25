@@ -82,7 +82,7 @@ export default function Recorder({ id }: { id: string }) {
   const playerOf = (pid?: string) => players.find((p) => p.id === pid)
   const nameOf = (pid?: string) => shortName(playerOf(pid))
   const onCourt = [...gs.onCourt].sort((a, b) => numberOf(a) - numberOf(b))
-  const bench = [...season.roster].filter((r) => !gs.onCourt.includes(r.playerId)).sort((a, b) => a.number - b.number)
+  const bench = [...season.roster].filter((r) => (!game.called || game.called.includes(r.playerId)) && !gs.onCourt.includes(r.playerId)).sort((a, b) => a.number - b.number)
   const cur = onCourt.includes(sel) ? sel : onCourt[0]
   const s = gs.players[cur]
   const sq = gq.players[cur]
@@ -365,7 +365,7 @@ function Subs({ game, gs, onClose, onDone }: { game: Game; gs: ReturnType<typeof
   const [remaining, setRemaining] = useState(lastSub?.remaining ?? L)
   const [outSel, setOutSel] = useState<string[]>([])
   const [inSel, setInSel] = useState<string[]>([])
-  const roster = [...season.roster].sort((a, b) => a.number - b.number)
+  const roster = [...season.roster].filter((r) => !game.called || game.called.includes(r.playerId) || gs.onCourt.includes(r.playerId)).sort((a, b) => a.number - b.number)
   const onIds = roster.filter((r) => gs.onCourt.includes(r.playerId))
   const offIds = roster.filter((r) => !gs.onCourt.includes(r.playerId))
   const adj = (d: number) => setRemaining((r) => Math.min(L, Math.max(0, r + d)))

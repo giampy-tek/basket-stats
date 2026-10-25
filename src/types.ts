@@ -65,6 +65,7 @@ export interface Game {
   quarter: number
   quarterLength: number // secondi
   starters: string[]
+  called?: string[] // convocati (max 12) quando il roster ne ha di più; se manca, sono tutti
   events: GameEvent[]
   /** minuti (secondi) e +/- per giocatore e per periodo, per le partite importate da CSV */
   imported?: { min: Record<string, number[]>; pm: Record<string, number[]> }
