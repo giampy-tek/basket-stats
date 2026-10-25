@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { computeSeason } from '../stats'
+import { computeSeason, pct, zoneTotals } from '../stats'
+import { go } from '../ui'
 import { StatsTable, type Row } from '../StatsTable'
 
 export default function SeasonStats() {
@@ -9,6 +10,9 @@ export default function SeasonStats() {
   const [avg, setAvg] = useState(false)
   if (!season) return <div className="page">Nessuna stagione</div>
   const agg = computeSeason(games.filter((g) => g.seasonId === seasonId))
+  const events = games.filter((g) => g.seasonId === seasonId && g.status === 'done').flatMap((g) => g.events)
+  const zt = zoneTotals(events)
+  const zl = [['campana', 'Campana'], ['media', 'Media distanza'], ['da3', 'Da 3']] as const
   const rows: Row[] = season.roster
     .map((r) => ({ r, a: agg.agg[r.playerId] }))
     .filter((x) => x.a)
@@ -39,6 +43,31 @@ export default function SeasonStats() {
         </div>
         {rows.length === 0 ? <div className="empty card">Nessuna partita terminata: le statistiche appaiono qui appena ne chiudi una.</div> :
           <StatsTable mode="season" rows={rows} total={agg.total} avg={avg} totalGames={agg.games} />}
+        {rows.length > 0 && (
+          <div className="card pad">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div className="section-title" style={{ margin: 0 }}>Tiri per zona</div>
+              <button className="btn small" onClick={() => go('/stats/map')}>Mappa di tiro →</button>
+            </div>
+            <div className="zone-box" style={{ marginBottom: 14 }}>
+              {zl.map(([z, n]) => <div key={z}><small>{n.toUpperCase()}</small><b>{pct(zt.team[z].m, zt.team[z].a)}</b><span>{zt.team[z].m}/{zt.team[z].a}</span></div>)}
+            </div>
+            <div className="tablewrap">
+              <table className="stats">
+                <thead><tr><th>Giocatore</th>{zl.map(([, n]) => <th key={n}>{n}</th>)}</tr></thead>
+                <tbody>
+                  {rows.filter((r) => zt.players[r.key]).map((r) => (
+                    <tr key={r.key}><td>{r.label}</td>{zl.map(([z]) => {
+                      const c = zt.players[r.key][z]
+                      return <td key={z}>{c.m}/{c.a}<br /><small style={{ color: 'var(--muted)' }}>{pct(c.m, c.a)}</small></td>
+                    })}</tr>
+                  ))}
+                  <tr className="total"><td>Totale squadra</td>{zl.map(([z]) => <td key={z}>{zt.team[z].m}/{zt.team[z].a}</td>)}</tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

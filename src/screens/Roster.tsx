@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore, playerName } from '../store'
-import { Hero, Modal, Field } from '../ui'
+import { Avatar, Hero, Modal, Field } from '../ui'
+import { photoToDataUrl } from '../photo'
 
 export default function Roster() {
   const { seasons, seasonId, players, setNumber, removeFromRoster, addToRoster, addPlayer, updatePlayer } = useStore()
@@ -33,6 +34,14 @@ export default function Roster() {
                 <div className="player-row" key={r.playerId}>
                   <input className="numbox" inputMode="numeric" value={r.number}
                     onChange={(e) => setNumber(season.id, r.playerId, Number(e.target.value.replace(/\D/g, '')) || 0)} />
+                  <label className="avatar-btn" title="Cambia foto">
+                    <Avatar photo={p?.photo} size={52} />
+                    <input type="file" accept="image/*" hidden onChange={async (e) => {
+                      const f = e.target.files?.[0]
+                      if (f && p) updatePlayer(p.id, { photo: await photoToDataUrl(f) })
+                      e.target.value = ''
+                    }} />
+                  </label>
                   <div className="name">
                     {playerName(p)}
                     <select className="role" style={{ display: 'block', border: 0, background: 'none', padding: 0 }} value={p?.role ?? ''}

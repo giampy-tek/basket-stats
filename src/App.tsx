@@ -7,6 +7,7 @@ import Prepare from './screens/Prepare'
 import Recorder from './screens/Recorder'
 import GameStats from './screens/GameStats'
 import SeasonStats from './screens/SeasonStats'
+import ShotMap from './screens/ShotMap'
 
 export default function App() {
   const [a, b, c] = useRoute()
@@ -19,6 +20,7 @@ export default function App() {
   else if (a === 'record') view = <Recorder id={b} />
   else if (a === 'stats' && b === 'game') view = <GameStats id={c} />
   else if (a === 'stats' && b === 'season') view = <SeasonStats />
+  else if (a === 'stats' && b === 'map') view = <ShotMap />
   else view = <Dashboard />
   return <div className="screen">{view}</div>
 }

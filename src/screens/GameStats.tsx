@@ -4,7 +4,9 @@ import { computeGame, pct } from '../stats'
 import { StatsTable, type Row } from '../StatsTable'
 import { Court, ShotDot, go } from '../ui'
 import { boxscorePng, shareOrDownload } from '../boxscore'
+import { EventList } from '../EventList'
 import { zoneOf, type Zone } from '../court'
+import { qLabel } from '../eventText'
 import type { Game, PStat } from '../types'
 
 export function useRows(game: Game, gs: ReturnType<typeof computeGame>, live: boolean): Row[] {
@@ -46,7 +48,6 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
   const zl: [Zone, string][] = [['campana', 'Campana'], ['media', 'Media'], ['da3', 'Da 3']]
   const made = shots.filter((e) => e.made)
   const missed = shots.filter((e) => !e.made)
-  const qLabel = (i: number) => (i <= 4 ? `Q${i}` : `OT${i - 4}`)
 
   return (
     <div className="stack">
@@ -88,6 +89,8 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
           <div className="section-title" style={{ margin: '0 0 6px' }}>Timeout</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontWeight: 600 }}><span>Noi</span><span>{gs.timeoutsUs}</span></div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontWeight: 600 }}><span>Avversari</span><span>{gs.timeoutsOpp}</span></div>
+          <div className="section-title" style={{ margin: '10px 0 6px' }}>Rimbalzi avversari</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontWeight: 600 }}><span>Off. / Dif.</span><span>{gs.oppRo} / {gs.oppRd}</span></div>
         </div>
       </div>
 
@@ -129,6 +132,11 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
             </Court>
           </div>
         ))}
+      </div>
+      <div className="card pad">
+        <div className="section-title" style={{ margin: '0 0 10px' }}>Modifica azioni {q === 0 ? 'della partita' : `del ${qLabel(q)}`}</div>
+        <p style={{ color: 'var(--muted)', marginTop: 0, fontSize: 14 }}>Cambia l’esito di un tiro (✓/✗) o i punti (2P/3P), assegna l’azione a un altro giocatore, eliminala o aggiungine una. Le statistiche si aggiornano subito.</p>
+        <EventList game={game} quarter={q} allowAdd />
       </div>
       {void players}
     </div>

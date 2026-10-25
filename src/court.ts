@@ -22,3 +22,21 @@ export function zoneOf(x: number, y: number): Zone {
   if (x >= PAINT.x1 && x <= PAINT.x2 && y <= PAINT.y2) return 'campana'
   return 'media'
 }
+
+export type Zone9 = 'campSx' | 'campDx' | 'medSx' | 'medC' | 'medDx' | 'angSx' | 'angDx' | 'alaSx' | 'alaDx' | 'front'
+export const FRONT_ANGLE = 26 // gradi dalla verticale del canestro
+
+/** Zona di tiro dettagliata; sinistra/destra dal punto di vista di chi tira, rivolto al canestro. */
+export function zoneDetail(x: number, y: number): Zone9 {
+  if (!isThree(x, y)) {
+    if (x >= PAINT.x1 && x <= PAINT.x2 && y <= PAINT.y2) return x < HOOP.x ? 'campSx' : 'campDx'
+    if (x < PAINT.x1) return 'medSx'
+    if (x > PAINT.x2) return 'medDx'
+    return 'medC'
+  }
+  if (y <= CORNER_Y && x < CORNER_X) return 'angSx'
+  if (y <= CORNER_Y && x > COURT_W - CORNER_X) return 'angDx'
+  const ang = (Math.atan2(x - HOOP.x, y - HOOP.y) * 180) / Math.PI
+  if (Math.abs(ang) < FRONT_ANGLE) return 'front'
+  return x < HOOP.x ? 'alaSx' : 'alaDx'
+}

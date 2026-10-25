@@ -58,8 +58,8 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 /** Mezzo campo in SVG, coordinate in metri. */
-export function Court({ onTap, children, hoopTop = true }: {
-  onTap?: (x: number, y: number) => void; children?: ReactNode; hoopTop?: boolean
+export function Court({ onTap, children, under, plain = false, hoopTop = true }: {
+  onTap?: (x: number, y: number) => void; children?: ReactNode; under?: ReactNode; plain?: boolean; hoopTop?: boolean
 }) {
   const handle = (e: MouseEvent<SVGSVGElement>) => {
     if (!onTap) return
@@ -73,7 +73,8 @@ export function Court({ onTap, children, hoopTop = true }: {
   void hoopTop
   return (
     <svg className="court-svg" viewBox={`0 0 ${COURT_W} ${COURT_L}`} onClick={handle}>
-      <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} fill="var(--paint)" />
+      {!plain && <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} fill="var(--paint)" />}
+      {under}
       <g fill="none" stroke={L} strokeWidth={0.07}>
         <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} />
         <path d={`M ${HOOP.x - FT_R} ${ftY} A ${FT_R} ${FT_R} 0 0 0 ${HOOP.x + FT_R} ${ftY}`} />
@@ -98,5 +99,14 @@ export function ShotDot({ x, y, made, label, r = 0.36 }: { x: number; y: number;
         </text>
       )}
     </g>
+  )
+}
+
+export function Avatar({ photo, size = 52, label }: { photo?: string; size?: number; label?: string }) {
+  if (photo) return <img src={photo} alt="" width={size} height={size} style={{ width: size, height: size, borderRadius: size / 4, objectFit: 'cover', flex: 'none' }} />
+  return (
+    <span style={{ width: size, height: size, borderRadius: size / 4, background: 'linear-gradient(#cfc8c0,#8f867d)', display: 'grid', placeItems: 'center', flex: 'none', color: '#fff', fontSize: size * 0.4, fontWeight: 700 }}>
+      {label ?? <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" /></svg>}
+    </span>
   )
 }

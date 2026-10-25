@@ -26,6 +26,9 @@ interface State {
   deleteGame: (id: string) => void
   pushEvent: (gameId: string, e: Omit<GameEvent, 'id'>) => void
   undo: (gameId: string) => void
+  updateEvent: (gameId: string, eventId: string, patch: Partial<GameEvent>) => void
+  deleteEvent: (gameId: string, eventId: string) => void
+  addEvent: (gameId: string, e: Omit<GameEvent, 'id'>) => void
   resetAll: () => void
   importAll: (data: Partial<State>) => void
 }
@@ -103,6 +106,25 @@ export const useStore = create<State>()(
       pushEvent: (gameId, e) =>
         set((st) => ({
           games: st.games.map((g) => (g.id === gameId ? { ...g, events: [...g.events, { ...e, id: uid() }] } : g)),
+        })),
+      updateEvent: (gameId, eventId, patch) =>
+        set((st) => ({
+          games: st.games.map((g) => (g.id === gameId ? { ...g, events: g.events.map((e) => (e.id === eventId ? { ...e, ...patch } : e)) } : g)),
+        })),
+      deleteEvent: (gameId, eventId) =>
+        set((st) => ({ games: st.games.map((g) => (g.id === gameId ? { ...g, events: g.events.filter((e) => e.id !== eventId) } : g)) })),
+      addEvent: (gameId, e) =>
+        set((st) => ({
+          games: st.games.map((g) => {
+            if (g.id !== gameId) return g
+            // inserisce in coda al quarto scelto (prima della sua "fine quarto")
+            let idx = -1
+            g.events.forEach((x, i) => { if (x.q === e.q && x.type !== 'qend') idx = i })
+            if (idx < 0) g.events.forEach((x, i) => { if (x.q < e.q) idx = i })
+            const events = [...g.events]
+            events.splice(idx + 1, 0, { ...e, id: uid() })
+            return { ...g, events }
+          }),
         })),
       undo: (gameId) =>
         set((st) => ({

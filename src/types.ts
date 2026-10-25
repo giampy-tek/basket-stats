@@ -3,6 +3,7 @@ export interface Player {
   first: string
   last: string
   role: string
+  photo?: string // data URL JPEG ridimensionato
 }
 
 export interface RosterEntry {
