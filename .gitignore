@@ -4,3 +4,4 @@ roster-*.json
 *.log
 .claude
 .vercel
+import/

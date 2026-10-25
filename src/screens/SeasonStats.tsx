@@ -16,7 +16,7 @@ export default function SeasonStats() {
   const rows: Row[] = season.roster
     .map((r) => ({ r, a: agg.agg[r.playerId] }))
     .filter((x) => x.a)
-    .sort((a, b) => b.a.stat.val - a.a.stat.val)
+    .sort((a, b) => b.a.stat.pir - a.a.stat.pir)
     .map(({ r, a }) => {
       const p = players.find((x) => x.id === r.playerId)
       return { key: r.playerId, label: `#${r.number} ${p?.last} ${p?.first}`, s: a.stat, games: a.games }

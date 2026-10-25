@@ -2,7 +2,7 @@ import type { Game, PStat } from './types'
 
 const blank = (playerId: string): PStat => ({
   playerId, pts: 0, min: 0, m2: 0, a2: 0, m3: 0, a3: 0, mf: 0, af: 0,
-  f: 0, fs: 0, ro: 0, rd: 0, rec: 0, pp: 0, ass: 0, sm: 0, ss: 0, pm: 0, val: 0,
+  f: 0, fs: 0, ro: 0, rd: 0, rec: 0, pp: 0, ass: 0, sm: 0, ss: 0, pm: 0, val: 0, pir: 0,
 })
 
 export interface GameStats {
@@ -22,9 +22,11 @@ export interface GameStats {
 }
 
 export const rt = (s: PStat) => s.ro + s.rd
+/** Valutazione FIBA: punti - tiri sbagliati + rimbalzi + assist - palle perse + recuperi + stoppate date */
 export const calcVal = (s: PStat) =>
-  s.pts + rt(s) + s.rec + s.ass + s.sm + s.fs -
-  (s.a2 - s.m2) - (s.a3 - s.m3) - (s.af - s.mf) - s.pp - s.ss - s.f
+  s.pts + rt(s) + s.rec + s.ass + s.sm - (s.a2 - s.m2) - (s.a3 - s.m3) - (s.af - s.mf) - s.pp
+/** PIR (indice FIP): valutazione FIBA + falli subiti - falli commessi - stoppate subite */
+export const calcPir = (s: PStat) => calcVal(s) + s.fs - s.f - s.ss
 
 /** q = 0 -> tutta la partita, altrimenti solo quel quarto */
 export function computeGame(game: Game, q = 0): GameStats {
@@ -106,15 +108,23 @@ export function computeGame(game: Game, q = 0): GameStats {
     }
   }
 
+  if (game.imported) {
+    // partita importata: minuti e +/- vengono dal file, non dai cambi
+    const pick = (arr?: number[]) => (arr ? (q === 0 ? arr.reduce((a, b) => a + (b || 0), 0) : arr[q] || 0) : 0)
+    for (const [pid, arr] of Object.entries(game.imported.min)) get(pid).min = pick(arr)
+    for (const [pid, arr] of Object.entries(game.imported.pm)) get(pid).pm = pick(arr)
+  }
+
   const total = blank('total')
   const keys = ['pts','min','m2','a2','m3','a3','mf','af','f','fs','ro','rd','rec','pp','ass','sm','ss'] as const
   for (const s of [...Object.values(players), team]) for (const k of keys) total[k] += s[k]
-  for (const s of Object.values(players)) s.val = calcVal(s)
+  for (const s of Object.values(players)) { s.val = calcVal(s); s.pir = calcPir(s) }
   team.val = 0
   const us = q === 0 ? perQ.us.reduce((a, b) => a + b, 0) : perQ.us[q]
   const opp = q === 0 ? perQ.opp.reduce((a, b) => a + b, 0) : perQ.opp[q]
   total.pm = us - opp
-  total.val = Object.values(players).reduce((a, s) => a + s.val, 0)
+  total.val = calcVal(total)
+  total.pir = calcPir(total)
   return { players, team, total, us, opp, perQ, foulsUs, foulsOpp, timeoutsUs, timeoutsOpp, oppRo, oppRd, onCourt: [...onCourt] }
 }
 
@@ -169,8 +179,9 @@ export function zoneTotals(events: GameEvent[]) {
   const team = emptyZones()
   const players: Record<string, ZoneCount> = {}
   for (const e of events) {
-    if (e.type !== 'shot' || e.x == null || e.y == null) continue
-    const z = zoneOf(e.x, e.y)
+    if (e.type !== 'shot') continue
+    const z = e.x != null && e.y != null ? zoneOf(e.x, e.y) : e.zone
+    if (!z) continue
     team[z].a++
     if (e.made) team[z].m++
     if (e.playerId) {

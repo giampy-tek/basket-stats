@@ -21,7 +21,7 @@ export default function Games({ selected }: { selected?: string }) {
       <button key={g.id} className={`game-item ${sel?.id === g.id ? 'sel' : ''}`} onClick={() => go(`/games/${g.id}`)}>
         <div>
           <div className="n">{g.opponent}</div>
-          <div className="d">{fmtDate(g.date)} · {g.time} · {label(g.status)}</div>
+          <div className="d">{[fmtDate(g.date), g.time, label(g.status)].filter(Boolean).join(' · ')}</div>
         </div>
         <div className="score">{gs ? `${gs.us}–${gs.opp}` : '--'}</div>
       </button>
@@ -53,7 +53,7 @@ export default function Games({ selected }: { selected?: string }) {
         {sel && (
           <div className="detail">
             <h2>{sel.opponent}</h2>
-            <div className="meta">{fmtDate(sel.date)} · {sel.time} · {sel.home ? 'casa' : 'trasferta'} · {label(sel.status)}</div>
+            <div className="meta">{[fmtDate(sel.date), sel.time, sel.home ? 'casa' : 'trasferta', label(sel.status)].filter(Boolean).join(' · ')}</div>
             {gs && (
               <div className="card pad" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 20 }}>
                 <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 60 }}>{gs.us} – {gs.opp}</div>

@@ -47,6 +47,7 @@ export interface GameEvent {
   kind?: string
   side?: 'us' | 'opp'
   remaining?: number
+  zone?: 'campana' | 'media' | 'da3' // zona nota senza coordinate (partite importate)
   out?: string[]
   in?: string[]
 }
@@ -65,6 +66,8 @@ export interface Game {
   quarterLength: number // secondi
   starters: string[]
   events: GameEvent[]
+  /** minuti (secondi) e +/- per giocatore e per periodo, per le partite importate da CSV */
+  imported?: { min: Record<string, number[]>; pm: Record<string, number[]> }
 }
 
 export interface PStat {
@@ -87,5 +90,6 @@ export interface PStat {
   sm: number
   ss: number
   pm: number
-  val: number
+  val: number // valutazione FIBA
+  pir: number // indice di valutazione FIP
 }

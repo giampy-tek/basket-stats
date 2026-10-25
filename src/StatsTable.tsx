@@ -30,7 +30,7 @@ export function StatsTable({ rows, team, total, mode = 'game', avg = false, tota
         <td>{v(s.rec, g)}</td><td>{v(s.pp, g)}</td>
         <td>{isTeam ? '' : v(s.ass, g)}</td><td>{isTeam ? '' : v(s.sm, g)}</td><td>{isTeam ? '' : v(s.ss, g)}</td>
         <td>{isTeam ? '' : v(s.val, g)}</td>
-        {!season && <td>{isTeam ? '' : (s.pm > 0 ? `+${s.pm}` : s.pm)}</td>}
+        {season ? <td>{isTeam ? '' : v(s.pir, g)}</td> : <td>{isTeam ? '' : (s.pm > 0 ? `+${s.pm}` : s.pm)}</td>}
       </>
     )
   }
@@ -45,14 +45,14 @@ export function StatsTable({ rows, team, total, mode = 'game', avg = false, tota
             {season && <th rowSpan={2}>P/M</th>}
             <th className="g" colSpan={3}>2P</th><th className="g" colSpan={3}>3P</th><th className="g" colSpan={3}>TL</th>
             <th className="g" colSpan={2}>Falli</th><th className="g" colSpan={3}>Rimbalzi</th><th className="g" colSpan={5}>Altre</th>
-            <th className="g" colSpan={season ? 1 : 2}>{season ? 'Val.' : 'Eff.'}</th>
+            <th className="g" colSpan={2}>{season ? 'Valutazione' : 'Eff.'}</th>
           </tr>
           <tr>
             <th>Pt</th><th>Min</th>
             <th>S</th><th>T</th><th>%</th><th>S</th><th>T</th><th>%</th><th>S</th><th>T</th><th>%</th>
             <th>F</th><th>FS</th><th>RO</th><th>RD</th><th>RT</th>
             <th>Rec</th><th>PP</th><th>Ass</th><th>SM</th><th>SS</th>
-            <th>{season ? 'PIR' : 'VAL'}</th>{!season && <th>+/-</th>}
+            <th>VAL</th>{season ? <th>PIR</th> : <th>+/-</th>}
           </tr>
         </thead>
         <tbody>

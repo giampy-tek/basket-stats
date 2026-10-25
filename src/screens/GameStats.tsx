@@ -34,11 +34,13 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
   const numberOf = (id?: string) => season?.roster.find((r) => r.playerId === id)?.number
   const maxQ = Math.max(4, game.quarter)
 
-  const shots = game.events.filter((e) => e.type === 'shot' && e.x != null && (q === 0 || e.q === q))
+  const inQ = game.events.filter((e) => e.type === 'shot' && (q === 0 || e.q === q))
+  const shots = inQ.filter((e) => e.x != null)
   const zones: Record<Zone, { m: number; a: number }> = { campana: { m: 0, a: 0 }, media: { m: 0, a: 0 }, da3: { m: 0, a: 0 } }
   const perPlayerZone: Record<string, Record<Zone, { m: number; a: number }>> = {}
-  for (const e of shots) {
-    const z = zoneOf(e.x!, e.y!)
+  for (const e of inQ) {
+    const z = e.x != null ? zoneOf(e.x, e.y!) : e.zone
+    if (!z) continue
     zones[z].a++; if (e.made) zones[z].m++
     if (e.playerId) {
       const pz = (perPlayerZone[e.playerId] ??= { campana: { m: 0, a: 0 }, media: { m: 0, a: 0 }, da3: { m: 0, a: 0 } })
@@ -96,6 +98,7 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
 
       <div className="card pad">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Tiri per zona</div>
+        {game.imported && <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: -4 }}>Partita importata: le percentuali per zona ci sono, ma le posizioni dei tiri sul campo no, quindi le mappe sono vuote.</p>}
         <div className="zones">
           <div>
             <Court>

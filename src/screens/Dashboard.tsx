@@ -4,6 +4,8 @@ import { Modal, Field, go } from '../ui'
 import { AccountModal, SyncBadge } from './Account'
 import { cloudEnabled } from '../cloud'
 import { ColorPicker } from './Setup'
+import { buildGame, parseBrpCsv } from '../importBrp'
+import { uid } from '../store'
 
 export default function Dashboard() {
   const { clubName, brandColor, seasons, seasonId, setClubName, setBrandColor, resetAll, importAll } = useStore()
@@ -26,6 +28,37 @@ export default function Dashboard() {
       if (!Array.isArray(d.players) || !Array.isArray(d.games)) throw new Error()
       if (confirm('Sostituire tutti i dati attuali con quelli del backup?')) { importAll(d); setOpen(false) }
     } catch { alert('File di backup non valido') }
+  }
+  const [importMsg, setImportMsg] = useState('')
+  const importCsv = async (files: FileList | null) => {
+    if (!files?.length) return
+    const st = useStore.getState()
+    const season = st.seasons.find((s) => s.id === st.seasonId)
+    if (!season) { setImportMsg('Crea prima una stagione.'); return }
+    const out: string[] = []
+    let players = st.players
+    let roster = season.roster
+    const games = [...st.games]
+    for (const f of Array.from(files)) {
+      try {
+        const parsed = parseBrpCsv(await f.text())
+        if (games.some((g) => g.seasonId === season.id && g.date === parsed.date && g.opponent.toLowerCase() === parsed.opponent.toLowerCase())) {
+          out.push(`⏭ ${parsed.opponent} (${parsed.date}): già presente, saltata.`)
+          continue
+        }
+        const r = buildGame(parsed, { ...season, roster }, players, uid)
+        for (const np of r.newPlayers) {
+          if (!players.some((p) => p.id === np.player.id)) players = [...players, np.player]
+          roster = [...roster, { playerId: np.player.id, number: np.number }]
+        }
+        games.push(r.game)
+        out.push(`✓ ${parsed.opponent} ${parsed.us}-${parsed.opp}${r.newPlayers.length ? ` · ${r.newPlayers.length} nuovi giocatori` : ''}${r.warnings.length ? ` · ⚠ ${r.warnings[0]}` : ''}`)
+      } catch (e) {
+        out.push(`✗ ${f.name}: ${e instanceof Error ? e.message : 'errore'}`)
+      }
+    }
+    useStore.setState({ players, games, seasons: st.seasons.map((s) => (s.id === season.id ? { ...s, roster } : s)) })
+    setImportMsg(out.join('\n'))
   }
   const initials = clubName.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 
@@ -73,6 +106,12 @@ export default function Dashboard() {
         <Modal title="Impostazioni" onClose={() => setOpen(false)}>
           <Field label="Nome del club"><input value={name} onChange={(e) => setName(e.target.value)} /></Field>
           <div className="field"><label>Colore della squadra</label><ColorPicker value={brandColor} onChange={setBrandColor} /></div>
+          <div className="section-title" style={{ marginTop: 6 }}>Importa da Basket Recorder Pro</div>
+          <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 8px' }}>Scegli uno o più file CSV di partita. Le partite entrano nella stagione corrente; i giocatori si abbinano dal numero di maglia.</p>
+          <div className="row-actions" style={{ marginTop: 0, marginBottom: 10 }}>
+            <label className="btn ghost">⬆ Importa partite (CSV)<input type="file" accept=".csv,text/csv" multiple hidden onChange={(e) => { void importCsv(e.target.files); e.target.value = '' }} /></label>
+          </div>
+          {importMsg && <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 14, background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 12, margin: '0 0 14px', userSelect: 'text' }}>{importMsg}</pre>}
           <div className="section-title" style={{ marginTop: 6 }}>Backup</div>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 18 }}>
             <button className="btn ghost" onClick={backup}>⬇ Esporta backup</button>
