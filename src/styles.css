@@ -361,21 +361,21 @@ html.no-scroll .screen { height: 100dvh; min-height: 0; }
 @media (max-width: 1000px) { .shotmap-grid { grid-template-columns: 1fr !important; } }
 
 /* ---------- transizioni ---------- */
-@keyframes pg-fwd { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-@keyframes pg-back { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
-@keyframes pg-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pg-fwd { from { opacity: 0; transform: translateX(90px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes pg-back { from { opacity: 0; transform: translateX(-90px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes pg-fade { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes pop-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
-@keyframes slide-up { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(34px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(70px); } to { opacity: 1; transform: none; } }
 @keyframes slide-left { from { transform: translateX(100%); } to { transform: none; } }
-.pg-fwd { animation: pg-fwd .3s cubic-bezier(.22, .8, .24, 1) backwards; }
-.pg-back { animation: pg-back .3s cubic-bezier(.22, .8, .24, 1) backwards; }
-.pg-fade { animation: pg-fade .24s ease-out backwards; }
+.pg-fwd { animation: pg-fwd .46s cubic-bezier(.16, .84, .24, 1) backwards; }
+.pg-back { animation: pg-back .46s cubic-bezier(.16, .84, .24, 1) backwards; }
+.pg-fade { animation: pg-fade .36s cubic-bezier(.16, .84, .24, 1) backwards; }
 .modal-back { animation: fade-in .18s ease-out; }
-.modal { animation: pop-in .24s cubic-bezier(.22, .8, .24, 1); }
-.overlay { animation: slide-up .3s cubic-bezier(.22, .8, .24, 1); }
+.modal { animation: pop-in .34s cubic-bezier(.16, .84, .24, 1); }
+.overlay { animation: slide-up .42s cubic-bezier(.16, .84, .24, 1); }
 .drawer-back { animation: fade-in .2s ease-out; }
-.ev-drawer { animation: slide-left .28s cubic-bezier(.22, .8, .24, 1); }
+.ev-drawer { animation: slide-left .4s cubic-bezier(.16, .84, .24, 1); }
 .btn, .pill, .list-row, .game-item, .pick, .card.tile { transition: background-color .18s, border-color .18s, transform .12s, box-shadow .18s; }
 .btn:active, .pill:active, .game-item:active, .pick:active, .card.tile:active { transform: scale(.985); }
 .hero { transition: background-color .35s; }

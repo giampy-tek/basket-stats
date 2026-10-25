@@ -347,14 +347,27 @@ async function onUser(id: string, email: string) {
   }
 }
 
+// La sessione resta salvata sul dispositivo: se l'app viene chiusa e riaperta (anche senza rete, con il
+// token scaduto) si rientra subito, senza rifare il login. Si esce solo con "Esci" o se il cloud
+// revoca l'accesso (evento SIGNED_OUT).
+const storedKey = cloudEnabled ? `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token` : ''
+function storedUser(): { id: string; email: string } | null {
+  try {
+    const s = JSON.parse(localStorage.getItem(storedKey) ?? '')
+    return s?.user?.id ? { id: s.user.id as string, email: (s.user.email as string) ?? '' } : null
+  } catch { return null }
+}
+
 if (client) {
+  const stored = storedUser()
+  if (stored) { void onUser(stored.id, stored.email); setCloud({ ready: true }) }
   client.auth.getSession().then(async ({ data }) => {
-    if (data.session) await onUser(data.session.user.id, data.session.user.email ?? '')
+    if (data.session && data.session.user.id !== userId) await onUser(data.session.user.id, data.session.user.email ?? '')
     setCloud({ ready: true })
   }).catch(() => setCloud({ ready: true }))
-  client.auth.onAuthStateChange((_ev, session) => {
+  client.auth.onAuthStateChange((ev, session) => {
     if (session) { if (session.user.id !== userId) void onUser(session.user.id, session.user.email ?? '') }
-    else { userId = ''; setCloud({ email: null, status: 'idle', lastSync: null }) }
+    else if (ev === 'SIGNED_OUT') { userId = ''; setCloud({ email: null, status: 'idle', lastSync: null }) }
   })
   window.addEventListener('online', () => { schedule(500); void refreshTeams() })
   window.addEventListener('offline', () => userId && setCloud({ status: 'offline' }))
