@@ -2,6 +2,7 @@ import { useRoute } from './ui'
 import { useStore } from './store'
 import Setup from './screens/Setup'
 import Login from './screens/Login'
+import { Share } from './screens/Teams'
 import { cloudEnabled, useCloud } from './cloud'
 import { REQUIRE_LOGIN } from './cloudConfig'
 import Dashboard from './screens/Dashboard'
@@ -17,6 +18,7 @@ import ShotMap from './screens/ShotMap'
 export default function App() {
   const [a, b, c] = useRoute()
   const hasClub = useStore((s) => !!s.clubName)
+  const viewer = useStore((s) => s.clubs[s.activeId]?.role === 'viewer')
   const { ready, email } = useCloud()
   if (cloudEnabled && REQUIRE_LOGIN) {
     if (!ready) return <div className="screen" />
@@ -28,8 +30,9 @@ export default function App() {
   else if (a === 'seasons') view = <Seasons />
   else if (a === 'roster') view = <Roster />
   else if (a === 'games') view = <Games selected={b} />
-  else if (a === 'prepare') view = <Prepare id={b} />
-  else if (a === 'record') view = <Recorder id={b} />
+  else if (a === 'prepare') view = viewer ? <Games selected={b} /> : <Prepare id={b} />
+  else if (a === 'record') view = viewer ? <Games selected={b} /> : <Recorder id={b} />
+  else if (a === 'share') view = <Share />
   else if (a === 'stats' && b === 'game') view = <GameStats id={c} />
   else if (a === 'stats' && b === 'season') view = <SeasonStats />
   else if (a === 'stats' && b === 'map') view = <ShotMap />

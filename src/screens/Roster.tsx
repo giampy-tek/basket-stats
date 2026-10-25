@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useStore, playerName } from '../store'
+import { useStore, playerName, useCanEdit } from '../store'
 import { Avatar, Hero, Modal, Field } from '../ui'
 import { photoToDataUrl } from '../photo'
 
 export default function Roster() {
   const { seasons, seasonId, players, setNumber, removeFromRoster, addToRoster, addPlayer, updatePlayer } = useStore()
   const season = seasons.find((s) => s.id === seasonId)
+  const canEdit = useCanEdit()
   const [adding, setAdding] = useState(false)
   const [f, setF] = useState({ first: '', last: '', role: '', number: '' })
   if (!season) return <Hero title="Roster" back={{ label: 'Stagioni', to: '/seasons' }} />
@@ -23,7 +24,7 @@ export default function Roster() {
   return (
     <>
       <Hero title="Roster" sub={`${season.year} ${season.category}`} back={{ label: 'Stagioni', to: '/seasons' }}
-        right={<button className="pill" onClick={() => setAdding(true)}>＋ Nuovo</button>} />
+        right={canEdit ? <button className="pill" onClick={() => setAdding(true)}>＋ Nuovo</button> : undefined} />
       <div className="page two-col">
         <div>
           <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between' }}>In roster <span style={{ color: 'var(--brand)' }}>{inRoster.length}</span></div>
@@ -32,9 +33,9 @@ export default function Roster() {
               const p = byId(r.playerId)
               return (
                 <div className="player-row" key={r.playerId}>
-                  <input className="numbox" inputMode="numeric" value={r.number}
+                  <input className="numbox" inputMode="numeric" value={r.number} readOnly={!canEdit}
                     onChange={(e) => setNumber(season.id, r.playerId, Number(e.target.value.replace(/\D/g, '')) || 0)} />
-                  <label className="avatar-btn" title="Cambia foto">
+                  <label className="avatar-btn" title="Cambia foto" style={canEdit ? undefined : { pointerEvents: 'none' }}>
                     <Avatar photo={p?.photo} size={52} />
                     <input type="file" accept="image/*" hidden onChange={async (e) => {
                       const f = e.target.files?.[0]
@@ -44,12 +45,12 @@ export default function Roster() {
                   </label>
                   <div className="name">
                     {playerName(p)}
-                    <select className="role" style={{ display: 'block', border: 0, background: 'none', padding: 0 }} value={p?.role ?? ''}
+                    <select className="role" disabled={!canEdit} style={{ display: 'block', border: 0, background: 'none', padding: 0 }} value={p?.role ?? ''}
                       onChange={(e) => updatePlayer(r.playerId, { role: e.target.value })}>
                       {['', 'Playmaker', 'Guardia', 'Ala piccola', 'Ala grande', 'Centro'].map((x) => <option key={x} value={x}>{x || 'Ruolo non impostato'}</option>)}
                     </select>
                   </div>
-                  <button className="x" onClick={() => removeFromRoster(season.id, r.playerId)}>✕</button>
+                  {canEdit && <button className="x" onClick={() => removeFromRoster(season.id, r.playerId)}>✕</button>}
                 </div>
               )
             })}
@@ -60,7 +61,7 @@ export default function Roster() {
           <div className="card list">
             {available.length === 0 && <div className="empty">Nessun altro giocatore disponibile.</div>}
             {available.map((p) => (
-              <button className="list-row" key={p.id} onClick={() => addToRoster(season.id, p.id, 0)}>
+              <button className="list-row" key={p.id} disabled={!canEdit} onClick={() => addToRoster(season.id, p.id, 0)}>
                 <span className="t">{playerName(p)}</span><span className="end" style={{ fontSize: 24, color: 'var(--brand)' }}>＋</span>
               </button>
             ))}

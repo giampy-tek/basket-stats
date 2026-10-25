@@ -5,3 +5,4 @@ roster-*.json
 .claude
 .vercel
 import/
+.DS_Store

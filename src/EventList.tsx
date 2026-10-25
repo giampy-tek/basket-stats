@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useStore, shortName } from './store'
+import { useStore, shortName, useCanEdit } from './store'
 import { ADD_PRESETS, eventLabel, qLabel } from './eventText'
 import { Modal, Field } from './ui'
 import type { Game } from './types'
@@ -10,6 +10,7 @@ export function EventList({ game, quarter = 0, compact = false, allowAdd = false
 }) {
   const { players, seasons, updateEvent, deleteEvent, addEvent } = useStore()
   const season = seasons.find((s) => s.id === game.seasonId)
+  const canEdit = useCanEdit()
   const roster = [...(season?.roster ?? [])].sort((a, b) => a.number - b.number)
   const num = (id?: string) => roster.find((r) => r.playerId === id)?.number
   const [adding, setAdding] = useState(false)
@@ -31,7 +32,7 @@ export function EventList({ game, quarter = 0, compact = false, allowAdd = false
 
   return (
     <div>
-      {allowAdd && <button className="btn small ghost" style={{ marginBottom: 10 }} onClick={() => { setForm({ preset: 's2+', player: roster[0]?.playerId ?? '', q: quarter || game.quarter }); setAdding(true) }}>＋ Aggiungi azione</button>}
+      {allowAdd && canEdit && <button className="btn small ghost" style={{ marginBottom: 10 }} onClick={() => { setForm({ preset: 's2+', player: roster[0]?.playerId ?? '', q: quarter || game.quarter }); setAdding(true) }}>＋ Aggiungi azione</button>}
       {list.length === 0 && <div className="empty">Nessuna azione.</div>}
       <div className="card list">
         {list.map(({ e }) => (
@@ -42,18 +43,18 @@ export function EventList({ game, quarter = 0, compact = false, allowAdd = false
               {!compact && e.playerId ? <b>{shortName(players.find((p) => p.id === e.playerId))} · </b> : compact && e.playerId ? <b>{shortName(players.find((p) => p.id === e.playerId)).split(' ').slice(-1)[0]} · </b> : null}
               {eventLabel(e)}
             </span>
-            {(e.type === 'shot' || e.type === 'ft') && (
+            {canEdit && (e.type === 'shot' || e.type === 'ft') && (
               <button className={`ev-btn ${e.made ? 'ok' : 'ko'}`} title="Cambia esito" onClick={() => updateEvent(game.id, e.id, { made: !e.made })}>{e.made ? '✓' : '✗'}</button>
             )}
-            {e.type === 'shot' && (
+            {canEdit && e.type === 'shot' && (
               <button className="ev-btn" title="Cambia 2/3 punti" onClick={() => updateEvent(game.id, e.id, { pts: e.pts === 3 ? 2 : 3 })}>{e.pts}P</button>
             )}
-            {e.playerId && !compact && (
+            {canEdit && e.playerId && !compact && (
               <select className="ev-sel" value={e.playerId} onChange={(ev) => updateEvent(game.id, e.id, { playerId: ev.target.value })}>
                 {roster.map((r) => <option key={r.playerId} value={r.playerId}>{r.number} {shortName(players.find((p) => p.id === r.playerId))}</option>)}
               </select>
             )}
-            <button className="ev-btn del" title="Elimina" onClick={() => deleteEvent(game.id, e.id)}>🗑</button>
+            {canEdit && <button className="ev-btn del" title="Elimina" onClick={() => deleteEvent(game.id, e.id)}>🗑</button>}
           </div>
         ))}
       </div>

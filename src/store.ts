@@ -4,7 +4,15 @@ import type { Game, GameEvent, Player, Season } from './types'
 
 export const uid = () => Math.random().toString(36).slice(2, 10)
 
+export type Role = 'owner' | 'editor' | 'viewer'
+export interface ClubData { clubName: string; brandColor: string; players: Player[]; seasons: Season[]; games: Game[]; seasonId: string }
+/** Squadra nota a questo dispositivo. Quella attiva vive nei campi piatti dello store; le altre in `data`. */
+export interface ClubRef { id: string; name: string; role?: Role; data?: ClubData }
+export interface RemoteTeam { id: string; name: string; role: Role }
+
 interface State {
+  activeId: string // 'local' = squadra solo su questo dispositivo, altrimenti id della squadra nel cloud
+  clubs: Record<string, ClubRef>
   clubName: string
   brandColor: string
   players: Player[]
@@ -31,13 +39,20 @@ interface State {
   updateEvent: (gameId: string, eventId: string, patch: Partial<GameEvent>) => void
   deleteEvent: (gameId: string, eventId: string) => void
   addEvent: (gameId: string, e: Omit<GameEvent, 'id'>) => void
+  switchClub: (id: string) => void
+  syncClubList: (list: RemoteTeam[]) => void
+  linkClub: (id: string, role: Role, name: string) => void
+  addRemoteClub: (id: string, role: Role, name: string, brandColor: string) => void
   resetAll: () => void
   importAll: (data: Partial<State>) => void
 }
 
 /** Stato iniziale: nessuna squadra, si parte dalla schermata di primo avvio. */
+const emptyData = (name = ''): ClubData => ({ clubName: name, brandColor: '#b5440c', players: [], seasons: [], games: [], seasonId: '' })
+const flatOf = (s: State): ClubData => ({ clubName: s.clubName, brandColor: s.brandColor, players: s.players, seasons: s.seasons, games: s.games, seasonId: s.seasonId })
+
 function seed() {
-  return { clubName: '', brandColor: '#b5440c', players: [] as Player[], seasons: [] as Season[], games: [] as Game[], seasonId: '' }
+  return { activeId: 'local', clubs: {} as Record<string, ClubRef>, clubName: '', brandColor: '#b5440c', players: [] as Player[], seasons: [] as Season[], games: [] as Game[], seasonId: '' }
 }
 
 const patchSeason = (s: State, id: string, fn: (x: Season) => Season) => ({
@@ -48,6 +63,46 @@ export const useStore = create<State>()(
   persist(
     (set) => ({
       ...seed(),
+      switchClub: (id) =>
+        set((st) => {
+          if (id === st.activeId || !st.clubs[id]) return st
+          const saved: ClubRef = { id: st.activeId, name: st.clubName || st.clubs[st.activeId]?.name || '', role: st.clubs[st.activeId]?.role, data: flatOf(st) }
+          const next = st.clubs[id]
+          return { clubs: { ...st.clubs, [st.activeId]: saved }, activeId: id, ...(next.data ?? emptyData(next.name)) }
+        }),
+      syncClubList: (list) =>
+        set((st) => {
+          const clubs = { ...st.clubs }
+          const ids = new Set(list.map((x) => x.id))
+          for (const x of list) clubs[x.id] = { id: x.id, name: x.name, role: x.role, data: clubs[x.id]?.data }
+          for (const id of Object.keys(clubs)) if (id !== 'local' && !ids.has(id)) delete clubs[id]
+          let { activeId } = st
+          let patch: Partial<ClubData> = {}
+          const activeGone = activeId !== 'local' && !ids.has(activeId)
+          const localEmpty = activeId === 'local' && !st.clubName && list.length > 0
+          if (activeGone || localEmpty) {
+            const target = list[0]
+            if (target) { activeId = target.id; patch = clubs[target.id].data ?? emptyData(target.name) }
+            else { activeId = 'local'; patch = clubs['local']?.data ?? emptyData() }
+          }
+          return { clubs, activeId, ...patch }
+        }),
+      linkClub: (id, role, name) =>
+        set((st) => {
+          const clubs = { ...st.clubs }
+          delete clubs[st.activeId]
+          clubs[id] = { id, name, role }
+          return { clubs, activeId: id }
+        }),
+      addRemoteClub: (id, role, name, brandColor) =>
+        set((st) => {
+          const saved: ClubRef = { id: st.activeId, name: st.clubName || st.clubs[st.activeId]?.name || '', role: st.clubs[st.activeId]?.role, data: flatOf(st) }
+          return {
+            clubs: { ...st.clubs, [st.activeId]: saved, [id]: { id, name, role } },
+            activeId: id,
+            ...emptyData(name), brandColor,
+          }
+        }),
       setClubName: (clubName) => set({ clubName }),
       setBrandColor: (brandColor) => set({ brandColor }),
       setSeason: (seasonId) => set({ seasonId }),
@@ -135,7 +190,7 @@ export const useStore = create<State>()(
             return { ...g, events: g.events.slice(0, -1) }
           }),
         })),
-      resetAll: () => set({ ...seed() }),
+      resetAll: () => set({ ...seed(), clubs: {}, activeId: 'local' }),
       importAll: (d) => set({ clubName: d.clubName ?? '', brandColor: d.brandColor ?? '#b5440c', players: d.players ?? [], seasons: d.seasons ?? [], games: d.games ?? [], seasonId: d.seasonId ?? d.seasons?.[0]?.id ?? '' }),
     }),
     {
@@ -146,6 +201,11 @@ export const useStore = create<State>()(
     },
   ),
 )
+
+/** Ruolo nella squadra attiva: undefined = squadra locale (si può modificare tutto). */
+export const useRole = () => useStore((s) => s.clubs[s.activeId]?.role)
+/** False solo per chi ha il ruolo "sola lettura". */
+export const useCanEdit = () => useStore((s) => s.clubs[s.activeId]?.role !== 'viewer')
 
 export const playerName = (p?: Player) => (p ? `${p.last} ${p.first}` : '')
 export const shortName = (p?: Player) => (p ? `${p.first[0]}. ${p.last}` : '')

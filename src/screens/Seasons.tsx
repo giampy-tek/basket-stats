@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useStore } from '../store'
+import { useStore, useCanEdit } from '../store'
 import { go, Hero, Modal, Field } from '../ui'
 
 export default function Seasons() {
   const { seasons, seasonId, setSeason, games, addSeason, updateSeason, deleteSeason } = useStore()
   const season = seasons.find((s) => s.id === seasonId)
+  const canEdit = useCanEdit()
   const [edit, setEdit] = useState<'new' | 'edit' | null>(null)
   const [f, setF] = useState({ year: '', category: '', coach: '', vice: '', shirt1: '#0000FF', shirt2: '#FFFFFF' })
 
@@ -24,7 +25,7 @@ export default function Seasons() {
   return (
     <>
       <Hero title="Stagioni" sub={useStore.getState().clubName} back={{ label: 'Dashboard', to: '/' }}
-        right={<button className="pill" onClick={() => openForm('new')}>＋ Nuova</button>} />
+        right={canEdit ? <button className="pill" onClick={() => openForm('new')}>＋ Nuova</button> : undefined} />
       <div className="page" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 28 }}>
         <div>
           {seasons.map((s) => (
@@ -61,10 +62,10 @@ export default function Seasons() {
               <div className="list-row"><span style={{ width: 34, height: 34, borderRadius: 8, background: season.shirt1, border: '1px solid var(--line)' }} /><div><div className="t">Prima maglia</div><div className="s">{season.shirt1}</div></div></div>
               <div className="list-row"><span style={{ width: 34, height: 34, borderRadius: 8, background: season.shirt2, border: '1px solid var(--line)' }} /><div><div className="t">Seconda maglia</div><div className="s">{season.shirt2}</div></div></div>
             </div>
-            <div className="row-actions">
+            {canEdit && <div className="row-actions">
               <button className="btn ghost" onClick={() => openForm('edit')}>✎ Modifica</button>
               <button className="btn danger" onClick={() => { if (confirm('Eliminare la stagione e tutte le sue partite?')) deleteSeason(season.id) }}>Elimina</button>
-            </div>
+            </div>}
           </div>
         )}
       </div>

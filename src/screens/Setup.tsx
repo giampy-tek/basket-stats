@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { Field } from '../ui'
 import { PRESETS, readable } from '../theme'
 import { AccountModal } from './Account'
-import { cloudEnabled } from '../cloud'
+import { cloudEnabled, uploadActiveClub, useCloud } from '../cloud'
 
 export function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
   const isPreset = PRESETS.some(([, c]) => c.toLowerCase() === value.toLowerCase())
@@ -39,6 +39,7 @@ export default function Setup() {
     if (!name.trim()) return
     setClubName(name.trim())
     addSeason({ year: year.trim() || seasonYear(), category: category.trim(), coach: coach.trim(), vice: '', shirt1: readable(brandColor), shirt2: '#FFFFFF' })
+    if (cloudEnabled && useCloud.getState().email) void uploadActiveClub()
   }
   const restore = async (f?: File) => {
     if (!f) return

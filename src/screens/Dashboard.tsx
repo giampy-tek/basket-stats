@@ -3,12 +3,16 @@ import { useStore } from '../store'
 import { Modal, Field, go } from '../ui'
 import { AccountModal, SyncBadge } from './Account'
 import { cloudEnabled } from '../cloud'
+import { ROLE_LABEL, TeamsModal } from './Teams'
 import { ColorPicker } from './Setup'
 import { buildGame, parseBrpCsv } from '../importBrp'
 import { uid } from '../store'
 
 export default function Dashboard() {
   const { clubName, brandColor, seasons, seasonId, setClubName, setBrandColor, resetAll, importAll } = useStore()
+  const role = useStore((s) => s.clubs[s.activeId]?.role)
+  const canEdit = role !== 'viewer'
+  const [teams, setTeams] = useState(false)
   const season = seasons.find((s) => s.id === seasonId)
   const [open, setOpen] = useState(false)
   const [acc, setAcc] = useState(false)
@@ -74,7 +78,8 @@ export default function Dashboard() {
       </div>
       <div className="page" style={{ paddingTop: 40 }}>
         {cloudEnabled && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <button className="pill" style={{ background: 'var(--brand)' }} onClick={() => setTeams(true)}>⇄ Squadre{role ? ` · ${ROLE_LABEL[role]}` : ''}</button>
             <button className="pill" style={{ background: 'var(--brand)' }} onClick={() => setAcc(true)}><SyncBadge /></button>
           </div>
         )}
@@ -101,25 +106,29 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+      {teams && <TeamsModal onClose={() => setTeams(false)} />}
       {acc && <AccountModal onClose={() => setAcc(false)} />}
       {open && (
         <Modal title="Impostazioni" onClose={() => setOpen(false)}>
-          <Field label="Nome del club"><input value={name} onChange={(e) => setName(e.target.value)} /></Field>
-          <div className="field"><label>Colore della squadra</label><ColorPicker value={brandColor} onChange={setBrandColor} /></div>
+          {!canEdit && <p style={{ color: 'var(--muted)' }}>Hai accesso in sola lettura a questa squadra: puoi consultare tutto ma non modificare.</p>}
+          {canEdit && <Field label="Nome del club"><input value={name} onChange={(e) => setName(e.target.value)} /></Field>}
+          {canEdit && <div className="field"><label>Colore della squadra</label><ColorPicker value={brandColor} onChange={setBrandColor} /></div>}
+          {canEdit && (<>
           <div className="section-title" style={{ marginTop: 6 }}>Importa da Basket Recorder Pro</div>
           <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 8px' }}>Scegli uno o più file CSV di partita. Le partite entrano nella stagione corrente; i giocatori si abbinano dal numero di maglia.</p>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 10 }}>
             <label className="btn ghost">⬆ Importa partite (CSV)<input type="file" accept=".csv,text/csv" multiple hidden onChange={(e) => { void importCsv(e.target.files); e.target.value = '' }} /></label>
           </div>
           {importMsg && <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 14, background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 12, margin: '0 0 14px', userSelect: 'text' }}>{importMsg}</pre>}
+          </>)}
           <div className="section-title" style={{ marginTop: 6 }}>Backup</div>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 18 }}>
             <button className="btn ghost" onClick={backup}>⬇ Esporta backup</button>
-            <label className="btn ghost">⬆ Importa backup<input type="file" accept="application/json" hidden onChange={(e) => restore(e.target.files?.[0])} /></label>
+            {canEdit && <label className="btn ghost">⬆ Importa backup<input type="file" accept="application/json" hidden onChange={(e) => restore(e.target.files?.[0])} /></label>}
           </div>
           <div className="row-actions">
-            <button className="btn" onClick={() => { setClubName(name.trim() || clubName); setOpen(false) }}>Salva</button>
-            <button className="btn danger" onClick={() => { if (confirm('Cancellare TUTTI i dati (squadra, giocatori, partite) da questo dispositivo? Fai prima un backup se ti serve.')) { resetAll(); setOpen(false) } }}>Azzera dati</button>
+            {canEdit && <button className="btn" onClick={() => { setClubName(name.trim() || clubName); setOpen(false) }}>Salva</button>}
+            {canEdit && <button className="btn danger" onClick={() => { if (confirm('Cancellare TUTTI i dati (squadra, giocatori, partite) da questo dispositivo? Fai prima un backup se ti serve.')) { resetAll(); setOpen(false) } }}>Azzera dati</button>}
           </div>
         </Modal>
       )}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useStore } from '../store'
+import { useStore, useCanEdit } from '../store'
 import { computeGame } from '../stats'
 import { go, Hero, Modal, Field, fmtDate } from '../ui'
 import type { Game } from '../types'
@@ -9,6 +9,7 @@ const label = (s: Game['status']) => (s === 'todo' ? 'Da iniziare' : s === 'live
 export default function Games({ selected }: { selected?: string }) {
   const { games, seasons, seasonId, addGame, updateGame, deleteGame, clubName } = useStore()
   const season = seasons.find((s) => s.id === seasonId)
+  const canEdit = useCanEdit()
   const list = games.filter((g) => g.seasonId === seasonId).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
   const toPlay = list.filter((g) => g.status !== 'done')
   const played = list.filter((g) => g.status === 'done')
@@ -40,7 +41,7 @@ export default function Games({ selected }: { selected?: string }) {
       <Hero title="Partite" sub={season ? `${season.year} ${season.category}` : ''} back={{ label: 'Stagioni', to: '/seasons' }}
         right={<>
           <button className="pill" onClick={() => go('/stats/season')}>▥ Stats stagione</button>
-          <button className="pill" onClick={() => setForm({ opponent: '', date: new Date().toISOString().slice(0, 10), time: '19:00', home: true })}>＋ Nuova</button>
+          {canEdit && <button className="pill" onClick={() => setForm({ opponent: '', date: new Date().toISOString().slice(0, 10), time: '19:00', home: true })}>＋ Nuova</button>}
         </>} />
       <div className="games-layout">
         <div>
@@ -60,15 +61,16 @@ export default function Games({ selected }: { selected?: string }) {
                 <div style={{ color: 'var(--muted)' }}>{clubName} – {sel.opponent}</div>
               </div>
             )}
-            {sel.status === 'todo' && <button className="btn block" onClick={() => go(`/prepare/${sel.id}`)}>📋 Prepara partita</button>}
-            {sel.status === 'live' && <button className="btn block" onClick={() => go(`/record/${sel.id}`)}>▶ Riprendi registrazione</button>}
-            {sel.status === 'done' && <button className="btn block" onClick={() => go(`/stats/game/${sel.id}`)}>▥ Vedi statistiche</button>}
-            <div className="row-actions">
+            {canEdit && sel.status === 'todo' && <button className="btn block" onClick={() => go(`/prepare/${sel.id}`)}>📋 Prepara partita</button>}
+            {canEdit && sel.status === 'live' && <button className="btn block" onClick={() => go(`/record/${sel.id}`)}>▶ Riprendi registrazione</button>}
+            {(sel.status === 'done' || (!canEdit && sel.status === 'live')) && <button className="btn block" onClick={() => go(`/stats/game/${sel.id}`)}>▥ Vedi statistiche</button>}
+            {sel.status === 'todo' && !canEdit && <p style={{ color: 'var(--muted)' }}>Partita non ancora giocata.</p>}
+            {canEdit && <div className="row-actions">
               {sel.status !== 'done' && sel.status !== 'todo' && <button className="btn ghost" onClick={() => go(`/stats/game/${sel.id}`)}>▥ Statistiche</button>}
               {sel.status === 'done' && <button className="btn ghost" onClick={() => updateGame(sel.id, { status: 'live' })}>↺ Riapri</button>}
               <button className="btn ghost" onClick={() => setForm({ id: sel.id, opponent: sel.opponent, date: sel.date, time: sel.time, home: sel.home })}>✎ Modifica</button>
               <button className="btn danger" onClick={() => { if (confirm(`Eliminare la partita con ${sel.opponent}?`)) { deleteGame(sel.id); go('/games') } }}>Elimina</button>
-            </div>
+            </div>}
           </div>
         )}
       </div>
