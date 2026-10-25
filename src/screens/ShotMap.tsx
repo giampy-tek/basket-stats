@@ -89,14 +89,14 @@ export function ShotMapPanel({ games, heading }: { games: Game[]; heading?: stri
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 18, marginTop: 14, alignItems: 'start' }}>
-            <Court plain under={view === 'zone' ? (
+            <Court plain lineWidth={view === 'zone' ? 0.16 : 0.09} under={view === 'zone' ? (
               <g>
                 <defs>
                   <pattern id="hatch" width="0.4" height="0.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                     <rect width="0.4" height="0.4" fill="#ece5da" /><line x1="0" y1="0" x2="0" y2="0.4" stroke="#fff" strokeWidth="0.12" />
                   </pattern>
                 </defs>
-                {ZONES.map((z) => <path key={z.id} d={z.path} fill={zones[z.id].a < 3 ? 'url(#hatch)' : heat(zones[z.id].m / zones[z.id].a)} />)}
+                {ZONES.map((z) => <path key={z.id} d={z.path} stroke="#fff" strokeWidth={0.16} strokeLinejoin="round" fill={zones[z.id].a < 3 ? 'url(#hatch)' : heat(zones[z.id].m / zones[z.id].a)} />)}
               </g>
             ) : undefined}>
               {view === 'zone' && ZONES.map((z) => {

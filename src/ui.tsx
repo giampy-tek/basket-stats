@@ -58,8 +58,8 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 /** Mezzo campo in SVG, coordinate in metri. */
-export function Court({ onTap, children, under, plain = false, hoopTop = true }: {
-  onTap?: (x: number, y: number) => void; children?: ReactNode; under?: ReactNode; plain?: boolean; hoopTop?: boolean
+export function Court({ onTap, children, under, plain = false, lineWidth = 0.07, hoopTop = true }: {
+  onTap?: (x: number, y: number) => void; children?: ReactNode; under?: ReactNode; plain?: boolean; lineWidth?: number; hoopTop?: boolean
 }) {
   const handle = (e: MouseEvent<SVGSVGElement>) => {
     if (!onTap) return
@@ -75,7 +75,7 @@ export function Court({ onTap, children, under, plain = false, hoopTop = true }:
     <svg className="court-svg" viewBox={`0 0 ${COURT_W} ${COURT_L}`} onClick={handle}>
       {!plain && <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} fill="var(--paint)" />}
       {under}
-      <g fill="none" stroke={L} strokeWidth={0.07}>
+      <g fill="none" stroke={L} strokeWidth={lineWidth} strokeLinecap="round" strokeLinejoin="round">
         <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} />
         <path d={`M ${HOOP.x - FT_R} ${ftY} A ${FT_R} ${FT_R} 0 0 0 ${HOOP.x + FT_R} ${ftY}`} />
         <path d={`M ${HOOP.x - FT_R} ${ftY} A ${FT_R} ${FT_R} 0 0 1 ${HOOP.x + FT_R} ${ftY}`} strokeDasharray="0.25 0.2" />
