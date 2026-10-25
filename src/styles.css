@@ -347,3 +347,14 @@ html.no-scroll .screen { height: 100dvh; min-height: 0; }
 .chip-btn { padding: 4px 10px; font-size: 12px; }
 .ev-strip { top: 62px; bottom: calc(8px + env(safe-area-inset-bottom)); }
 @media (max-height: 760px) { .court-svg { width: min(100%, calc(33dvh * 15 / 14)); } .court-row .shot-btns { height: 33dvh; } }
+
+/* ---------- primo avvio e colori ---------- */
+.setup { display: grid; grid-template-columns: minmax(280px, 42%) 1fr; min-height: 100dvh; }
+.setup-side { background: var(--brand); color: #fff; padding: 56px 36px; transition: background .25s; }
+.setup-logo { width: 130px; height: 130px; border-radius: 50%; border: 3px solid #fff; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 56px; margin: 46px 0 24px; }
+.setup-form { padding: 56px 40px; max-width: 640px; width: 100%; align-self: center; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatches button, .swatches .custom { width: 46px; height: 46px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line); position: relative; display: grid; place-items: center; font-size: 22px; color: var(--muted); background: #fff; overflow: hidden; cursor: pointer; }
+.swatches .on { box-shadow: 0 0 0 3px var(--ink); }
+.swatches .custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+@media (max-width: 800px) { .setup { grid-template-columns: 1fr; } .setup-side { padding: 28px 24px; } .setup-logo { margin: 18px 0; width: 90px; height: 90px; font-size: 38px; } .setup-side h1 { font-size: 44px !important; } .setup-form { padding: 24px; } }

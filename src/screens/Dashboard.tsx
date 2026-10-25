@@ -3,9 +3,10 @@ import { useStore } from '../store'
 import { Modal, Field, go } from '../ui'
 import { AccountModal, SyncBadge } from './Account'
 import { cloudEnabled } from '../cloud'
+import { ColorPicker } from './Setup'
 
 export default function Dashboard() {
-  const { clubName, seasons, seasonId, setClubName, resetAll, importAll } = useStore()
+  const { clubName, brandColor, seasons, seasonId, setClubName, setBrandColor, resetAll, importAll } = useStore()
   const season = seasons.find((s) => s.id === seasonId)
   const [open, setOpen] = useState(false)
   const [acc, setAcc] = useState(false)
@@ -71,6 +72,7 @@ export default function Dashboard() {
       {open && (
         <Modal title="Impostazioni" onClose={() => setOpen(false)}>
           <Field label="Nome del club"><input value={name} onChange={(e) => setName(e.target.value)} /></Field>
+          <div className="field"><label>Colore della squadra</label><ColorPicker value={brandColor} onChange={setBrandColor} /></div>
           <div className="section-title" style={{ marginTop: 6 }}>Backup</div>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 18 }}>
             <button className="btn ghost" onClick={backup}>⬇ Esporta backup</button>
@@ -78,7 +80,7 @@ export default function Dashboard() {
           </div>
           <div className="row-actions">
             <button className="btn" onClick={() => { setClubName(name.trim() || clubName); setOpen(false) }}>Salva</button>
-            <button className="btn danger" onClick={() => { if (confirm('Cancellare tutti i dati e ripartire dai dati iniziali?')) { resetAll(); setOpen(false) } }}>Azzera dati</button>
+            <button className="btn danger" onClick={() => { if (confirm('Cancellare TUTTI i dati (squadra, giocatori, partite) da questo dispositivo? Fai prima un backup se ti serve.')) { resetAll(); setOpen(false) } }}>Azzera dati</button>
           </div>
         </Modal>
       )}

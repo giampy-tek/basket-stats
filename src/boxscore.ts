@@ -21,7 +21,7 @@ export async function boxscorePng(game: Game, season: Season, players: Player[],
   const g = c.getContext('2d')!
   const DISP = "'Barlow Condensed', 'Arial Narrow', sans-serif"
   const BODY = "'Inter', -apple-system, system-ui, sans-serif"
-  const BRAND = '#b5440c', INK = '#2a1f1a', MUTED = '#7a6a60', LINE = '#e6dfd7'
+  const BRAND = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || '#b5440c', INK = '#2a1f1a', MUTED = '#7a6a60', LINE = '#e6dfd7'
 
   g.fillStyle = '#f4f1ec'; g.fillRect(0, 0, W, H)
   g.fillStyle = BRAND; g.fillRect(0, 0, W, HEAD)

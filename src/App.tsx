@@ -1,4 +1,6 @@
 import { useRoute } from './ui'
+import { useStore } from './store'
+import Setup from './screens/Setup'
 import Dashboard from './screens/Dashboard'
 import Seasons from './screens/Seasons'
 import Roster from './screens/Roster'
@@ -11,6 +13,8 @@ import ShotMap from './screens/ShotMap'
 
 export default function App() {
   const [a, b, c] = useRoute()
+  const hasClub = useStore((s) => !!s.clubName)
+  if (!hasClub) return <div className="screen"><Setup /></div>
   let view
   if (!a) view = <Dashboard />
   else if (a === 'seasons') view = <Seasons />

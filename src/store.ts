@@ -6,11 +6,13 @@ export const uid = () => Math.random().toString(36).slice(2, 10)
 
 interface State {
   clubName: string
+  brandColor: string
   players: Player[]
   seasons: Season[]
   games: Game[]
   seasonId: string
   setClubName: (n: string) => void
+  setBrandColor: (c: string) => void
   setSeason: (id: string) => void
   addSeason: (s: Omit<Season, 'id' | 'roster'>) => string
   updateSeason: (id: string, patch: Partial<Season>) => void
@@ -33,15 +35,9 @@ interface State {
   importAll: (data: Partial<State>) => void
 }
 
+/** Stato iniziale: nessuna squadra, si parte dalla schermata di primo avvio. */
 function seed() {
-  const players: Player[] = []
-  const season: Season = {
-    id: uid(), year: '2026/2027', category: 'Under 17',
-    coach: '', vice: '', shirt1: '#0000FF', shirt2: '#FFFFFF',
-    roster: [],
-  }
-  const games: Game[] = []
-  return { clubName: 'Jolly Basket', players, seasons: [season], games, seasonId: season.id }
+  return { clubName: '', brandColor: '#b5440c', players: [] as Player[], seasons: [] as Season[], games: [] as Game[], seasonId: '' }
 }
 
 const patchSeason = (s: State, id: string, fn: (x: Season) => Season) => ({
@@ -53,6 +49,7 @@ export const useStore = create<State>()(
     (set) => ({
       ...seed(),
       setClubName: (clubName) => set({ clubName }),
+      setBrandColor: (brandColor) => set({ brandColor }),
       setSeason: (seasonId) => set({ seasonId }),
       addSeason: (s) => {
         const id = uid()
@@ -139,7 +136,7 @@ export const useStore = create<State>()(
           }),
         })),
       resetAll: () => set({ ...seed() }),
-      importAll: (d) => set({ clubName: d.clubName ?? '', players: d.players ?? [], seasons: d.seasons ?? [], games: d.games ?? [], seasonId: d.seasonId ?? d.seasons?.[0]?.id ?? '' }),
+      importAll: (d) => set({ clubName: d.clubName ?? '', brandColor: d.brandColor ?? '#b5440c', players: d.players ?? [], seasons: d.seasons ?? [], games: d.games ?? [], seasonId: d.seasonId ?? d.seasons?.[0]?.id ?? '' }),
     }),
     {
       name: 'basket-stats-v1',

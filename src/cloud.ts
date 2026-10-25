@@ -57,7 +57,7 @@ useStore.subscribe((s) => {
   if (!applying) {
     const p = prev
     const now = Date.now()
-    if (s.clubName !== p.clubName || s.players !== p.players || s.seasons !== p.seasons || s.seasonId !== p.seasonId) {
+    if (s.clubName !== p.clubName || s.brandColor !== p.brandColor || s.players !== p.players || s.seasons !== p.seasons || s.seasonId !== p.seasonId) {
       meta.mod.club = now
     }
     const before = new Map(p.games.map((g) => [g.id, g]))
@@ -75,8 +75,8 @@ const pristine = () => {
   return s.players.length === 0 && s.games.length === 0
 }
 const clubDoc = (mod: number) => {
-  const { clubName, players, seasons, seasonId } = useStore.getState()
-  return { clubName, players, seasons, seasonId, _mod: mod }
+  const { clubName, brandColor, players, seasons, seasonId } = useStore.getState()
+  return { clubName, brandColor, players, seasons, seasonId, _mod: mod }
 }
 
 interface Row { id: string; kind: string; data: (Record<string, unknown> & { _mod?: number }) | null; deleted: boolean; updated_at: string }
@@ -86,8 +86,8 @@ function applyRemote(row: Row) {
   try {
     if (row.id === 'club') {
       if (row.data && !row.deleted) {
-        const { clubName, players, seasons, seasonId } = row.data as never as ReturnType<typeof clubDoc>
-        useStore.setState({ clubName, players, seasons, seasonId })
+        const { clubName, brandColor, players, seasons, seasonId } = row.data as never as ReturnType<typeof clubDoc>
+        useStore.setState({ clubName, brandColor: brandColor ?? '#b5440c', players, seasons, seasonId })
       }
     } else {
       const gid = row.id.replace(/^game:/, '')
