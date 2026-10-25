@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useStore, shortName } from '../store'
 import { computeGame, fmtTime, pct } from '../stats'
 import { Avatar, Court, Modal, ShotDot, go } from '../ui'
@@ -66,6 +66,12 @@ export default function Recorder({ id }: { id: string }) {
   const [drawer, setDrawer] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [redo, setRedo] = useState<GameEvent[]>([])
+
+  // pagina unica: niente scroll né rimbalzo della pagina mentre si registra
+  useEffect(() => {
+    document.documentElement.classList.add('no-scroll')
+    return () => document.documentElement.classList.remove('no-scroll')
+  }, [])
 
   const season = seasons.find((s) => s.id === game?.seasonId)
   const gs = useMemo(() => (game ? computeGame(game) : null), [game])
@@ -166,7 +172,7 @@ export default function Recorder({ id }: { id: string }) {
           <div className="btnrow" style={{ flex: 'none' }}>
             <button className="dark" onClick={() => setPanel('subs')}>Cambi</button>
             <button className="dark deep" onClick={() => setPanel('stats')}>Statistiche</button>
-            <button className="dark deep" style={{ gridColumn: '1 / -1' }} onClick={() => setPanel('bench')}>Panchina</button>
+            <button className="dark deep" onClick={() => setPanel('bench')}>Panchina</button>
           </div>
         </div>
 
@@ -177,8 +183,8 @@ export default function Recorder({ id }: { id: string }) {
             <span className="nm">{playerOf(cur)?.last}</span>
             <span className="pp"><b>{s.pts}</b>PUNTI<br />{sq?.pts ?? 0} nel quarto<br />VAL {s.val}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 8 }}>
-            <Avatar photo={playerOf(cur)?.photo} size={130} />
+          <div className="pmid">
+            <Avatar photo={playerOf(cur)?.photo} size={112} />
             <div className="shoot">
               <div className="r">2P<span className="v">{s.m2}/{s.a2}</span><span className="p">{pct(s.m2, s.a2)}</span></div>
               <div className="r">3P<span className="v">{s.m3}/{s.a3}</span><span className="p">{pct(s.m3, s.a3)}</span></div>
