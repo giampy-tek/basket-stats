@@ -61,7 +61,7 @@ export default function Setup() {
       <div className="setup-form">
         <h2 style={{ fontSize: 40, marginBottom: 6 }}>Benvenuto</h2>
         <p style={{ color: 'var(--muted)', marginTop: 0, marginBottom: 22 }}>Crea la tua squadra: i dati restano su questo dispositivo.</p>
-        <Field label="Nome della squadra"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Es. Jolly Basket" autoFocus /></Field>
+        <Field label="Nome della squadra"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Es. Salzano" autoFocus /></Field>
         <Field label="Categoria"><input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Es. Under 17 Gold" /></Field>
         <div style={{ display: 'flex', gap: 14 }}>
           <div style={{ flex: 1 }}><Field label="Stagione"><input value={year} onChange={(e) => setYear(e.target.value)} /></Field></div>
