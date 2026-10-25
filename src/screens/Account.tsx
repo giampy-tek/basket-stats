@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Modal, Field } from '../ui'
+import { ALLOW_SIGNUP } from '../cloudConfig'
 import { cloudEnabled, deleteCloudData, resetPassword, signIn, signOut, signUp, sync, useCloud } from '../cloud'
 
 export function SyncBadge() {
@@ -72,10 +73,12 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
   }
   return (
     <Modal title="Account" onClose={onClose}>
-      <div className="seg" style={{ marginBottom: 16 }}>
-        <button className={mode === 'in' ? 'on' : ''} onClick={() => { setMode('in'); setMsg('') }}>Accedi</button>
-        <button className={mode === 'up' ? 'on' : ''} onClick={() => { setMode('up'); setMsg('') }}>Crea account</button>
-      </div>
+      {ALLOW_SIGNUP && (
+        <div className="seg" style={{ marginBottom: 16 }}>
+          <button className={mode === 'in' ? 'on' : ''} onClick={() => { setMode('in'); setMsg('') }}>Accedi</button>
+          <button className={mode === 'up' ? 'on' : ''} onClick={() => { setMode('up'); setMsg('') }}>Crea account</button>
+        </div>
+      )}
       <Field label="Email"><input type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" value={mail} onChange={(e) => setMail(e.target.value)} /></Field>
       <Field label="Password"><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} /></Field>
       {msg && <p style={{ color: msg.startsWith('Account creato') || msg.startsWith('Ti abbiamo') ? 'var(--green)' : 'var(--red)', fontWeight: 500 }}>{msg}</p>}

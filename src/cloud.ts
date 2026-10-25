@@ -21,8 +21,9 @@ interface CloudState {
   status: Status
   lastSync: number | null
   error: string
+  ready: boolean // sessione già letta (evita il lampo della schermata di login)
 }
-export const useCloud = create<CloudState>(() => ({ email: null, status: cloudEnabled ? 'idle' : 'off', lastSync: null, error: '' }))
+export const useCloud = create<CloudState>(() => ({ email: null, status: cloudEnabled ? 'idle' : 'off', lastSync: null, error: '', ready: !cloudEnabled }))
 const setCloud = (p: Partial<CloudState>) => useCloud.setState(p)
 
 // ---- stato di sync locale (per utente) ----
@@ -240,7 +241,8 @@ function onUser(id: string, email: string) {
 if (client) {
   client.auth.getSession().then(({ data }) => {
     if (data.session) onUser(data.session.user.id, data.session.user.email ?? '')
-  })
+    setCloud({ ready: true })
+  }).catch(() => setCloud({ ready: true }))
   client.auth.onAuthStateChange((_ev, session) => {
     if (session) { if (session.user.id !== userId) onUser(session.user.id, session.user.email ?? '') }
     else { userId = ''; setCloud({ email: null, status: 'idle', lastSync: null }) }
