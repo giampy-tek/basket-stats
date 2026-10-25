@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { computeSeason, pct, zoneTotals } from '../stats'
-import { go } from '../ui'
+import { ShotMapPanel } from './ShotMap'
 import { StatsTable, type Row } from '../StatsTable'
 
 export default function SeasonStats() {
@@ -47,7 +47,6 @@ export default function SeasonStats() {
           <div className="card pad">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div className="section-title" style={{ margin: 0 }}>Tiri per zona</div>
-              <button className="btn small" onClick={() => go('/stats/map')}>Mappa di tiro →</button>
             </div>
             <div className="zone-box" style={{ marginBottom: 14 }}>
               {zl.map(([z, n]) => <div key={z}><small>{n.toUpperCase()}</small><b>{pct(zt.team[z].m, zt.team[z].a)}</b><span>{zt.team[z].m}/{zt.team[z].a}</span></div>)}
@@ -66,6 +65,12 @@ export default function SeasonStats() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+        {rows.length > 0 && (
+          <div className="card pad">
+            <div className="section-title" style={{ margin: '0 0 10px' }}>Mappa di tiro</div>
+            <ShotMapPanel games={games.filter((g) => g.seasonId === seasonId && g.status === 'done')} />
           </div>
         )}
       </div>

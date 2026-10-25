@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { Game } from '../types'
 import { useStore } from '../store'
 import { Court, ShotDot } from '../ui'
 import { COURT_W, COURT_L, CORNER_X, CORNER_Y, HOOP, PAINT, R3, FRONT_ANGLE, zoneDetail, type Zone9 } from '../court'
@@ -38,16 +39,17 @@ function heat(p: number) {
   return `rgb(${STOPS[STOPS.length - 1][1]})`
 }
 
-export default function ShotMap() {
-  const { games, seasons, seasonId, players } = useStore()
-  const season = seasons.find((s) => s.id === seasonId)
+/** Mappa di tiro a zone con filtri. Usata nella pagina stagione, nelle statistiche stagionali e in quelle di una partita. */
+export function ShotMapPanel({ games, heading }: { games: Game[]; heading?: string }) {
+  const { seasons, players } = useStore()
+  const season = seasons.find((s) => s.id === games[0]?.seasonId) ?? seasons[0]
   const [who, setWho] = useState('all')
   const [period, setPeriod] = useState(0)
   const [outcome, setOutcome] = useState<'all' | 'made' | 'miss'>('all')
   const [view, setView] = useState<'zone' | 'dots'>('zone')
-  if (!season) return <div className="page">Nessuna stagione</div>
+  if (!season) return null
 
-  const seasonGames = games.filter((g) => g.seasonId === seasonId && g.events.some((e) => e.type === 'shot'))
+  const seasonGames = games.filter((g) => g.events.some((e) => e.type === 'shot'))
   const all = seasonGames.flatMap((g) => g.events).filter((e) => e.type === 'shot' && e.x != null && e.y != null)
   const base = all.filter((e) => (who === 'all' || e.playerId === who) && (period === 0 || e.q === period))
   const zones = Object.fromEntries(ZONES.map((z) => [z.id, { m: 0, a: 0 }])) as Record<Zone9, { m: number; a: number }>
@@ -58,12 +60,7 @@ export default function ShotMap() {
   const nameOf = (id: string) => { const p = players.find((x) => x.id === id); return p ? `${p.first[0]}. ${p.last}` : '?' }
 
   return (
-    <>
-      <div className="top-nav">
-        <button className="round" onClick={() => history.back()}>‹</button>
-        <h1>Mappa di tiro</h1><span style={{ width: 54 }} />
-      </div>
-      <div className="page" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 18, alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 18, alignItems: 'start' }} className="shotmap-grid">
         <div className="card pad">
           <div className="section-title" style={{ margin: '0 0 8px' }}>Chi</div>
           <div className="chips">
@@ -83,8 +80,8 @@ export default function ShotMap() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', letterSpacing: '.08em' }}>{season.year} {season.category.toUpperCase()}</div>
-              <h2 style={{ fontSize: 30 }}>{who === 'all' ? 'Squadra' : nameOf(who)}</h2>
-              <div style={{ color: 'var(--muted)' }}>{base.length} tiri dal campo · {made} segnati · {pct(made, base.length)} · {seasonGames.length} partite</div>
+              <h2 style={{ fontSize: 30 }}>{who === 'all' ? (heading ?? 'Squadra') : nameOf(who)}</h2>
+              <div style={{ color: 'var(--muted)' }}>{base.length} tiri dal campo · {made} segnati · {pct(made, base.length)}{seasonGames.length > 1 ? ` · ${seasonGames.length} partite` : ''}</div>
             </div>
             <div className="seg light" style={{ background: 'var(--cream)' }}>
               <button className={view === 'zone' ? 'on' : ''} onClick={() => setView('zone')}>Zone</button>
@@ -128,11 +125,24 @@ export default function ShotMap() {
                   </tbody>
                 </table>
               </div>
+              {base.length === 0 && <p style={{ color: 'var(--muted)', fontSize: 13 }}>Nessun tiro con la posizione registrata (le partite importate da CSV non hanno le posizioni).</p>}
               <p style={{ color: 'var(--muted)', fontSize: 12 }}>Meno di 3 tiri: zona grigia. Destra e sinistra dal punto di vista di chi tira, rivolto al canestro.</p>
             </div>
           </div>
         </div>
+    </div>
+  )
+}
+
+export default function ShotMap() {
+  const { games, seasonId } = useStore()
+  return (
+    <>
+      <div className="top-nav">
+        <button className="round" onClick={() => history.back()}>‹</button>
+        <h1>Mappa di tiro</h1><span style={{ width: 54 }} />
       </div>
+      <div className="page"><ShotMapPanel games={games.filter((g) => g.seasonId === seasonId)} /></div>
     </>
   )
 }

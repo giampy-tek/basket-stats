@@ -5,6 +5,7 @@ import { StatsTable, type Row } from '../StatsTable'
 import { Court, ShotDot, go } from '../ui'
 import { boxscorePng, shareOrDownload } from '../boxscore'
 import { EventList } from '../EventList'
+import { ShotMapPanel } from './ShotMap'
 import { zoneOf, type Zone } from '../court'
 import { qLabel } from '../eventText'
 import type { Game, PStat } from '../types'
@@ -125,6 +126,10 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
             </table>
           </div>
         </div>
+      </div>
+      <div className="card pad">
+        <div className="section-title" style={{ margin: '0 0 10px' }}>Mappa di tiro</div>
+        <ShotMapPanel games={[game]} heading="Squadra" />
       </div>
       <div className="maps">
         {[['Segnati', made], ['Sbagliati', missed]].map(([title, list]) => (

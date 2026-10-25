@@ -20,7 +20,9 @@ export default function App() {
   const hasClub = useStore((s) => !!s.clubName)
   const viewer = useStore((s) => s.clubs[s.activeId]?.role === 'viewer')
   const { ready, email } = useCloud()
-  if (cloudEnabled && REQUIRE_LOGIN) {
+  // solo in sviluppo (npm run dev): ?nogate salta il login per provare l'interfaccia in locale
+  const devBypass = import.meta.env.DEV && new URLSearchParams(location.search).has('nogate')
+  if (cloudEnabled && REQUIRE_LOGIN && !devBypass) {
     if (!ready) return <div className="screen" />
     if (!email) return <div className="screen"><Login /></div>
   }
