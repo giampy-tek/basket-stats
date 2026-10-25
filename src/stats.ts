@@ -192,3 +192,60 @@ export function zoneTotals(events: GameEvent[]) {
   }
   return { team, players }
 }
+
+export interface Trend {
+  ties: number // quante volte il punteggio è tornato in parità
+  leadChanges: number
+  maxLeadUs: number
+  maxLeadOpp: number
+  runUs: number // parziale più lungo (punti consecutivi senza risposta)
+  runOpp: number
+  bench: number // punti dei giocatori che non erano nel quintetto base
+  timeoutsUs: number
+  timeoutsOpp: number
+  foulsUs: number
+  foulsOpp: number
+  bonusUs: boolean // siamo in bonus: gli avversari hanno 4+ falli di squadra nel periodo
+  bonusOpp: boolean
+  sequenceKnown: boolean // false per le partite importate: l'ordine dei canestri non è quello reale
+}
+
+/** Andamento di una partita (q = 0) o di un periodo. Il punteggio riparte da 0-0 a ogni periodo. */
+export function computeTrend(game: Game, q = 0): Trend {
+  const gs = computeGame(game, q)
+  const starters = new Set(game.starters)
+  let us = 0, opp = 0, ties = 0, lead = 0, leadChanges = 0, maxUs = 0, maxOpp = 0
+  let runSide: 'us' | 'opp' | null = null, run = 0, runUs = 0, runOpp = 0, bench = 0
+  let curQ = 0
+  for (const e of game.events) {
+    if (q !== 0 && e.q !== q) continue
+    if (q === 0 && e.q !== curQ) { curQ = e.q }
+    const pts = e.type === 'shot' && e.made ? e.pts ?? 2 : e.type === 'ft' && e.made ? 1 : 0
+    const oppPts = e.type === 'oppPts' ? e.pts ?? 0 : 0
+    if (!pts && !oppPts) continue
+    if (pts) {
+      us += pts
+      if (e.playerId && !starters.has(e.playerId)) bench += pts
+      if (runSide !== 'us') { runSide = 'us'; run = 0 }
+      run += pts; runUs = Math.max(runUs, run)
+    } else {
+      opp += oppPts
+      if (runSide !== 'opp') { runSide = 'opp'; run = 0 }
+      run += oppPts; runOpp = Math.max(runOpp, run)
+    }
+    const d = us - opp
+    if (d === 0) ties++
+    const sign = Math.sign(d)
+    if (sign !== 0) { if (lead !== 0 && sign !== lead) leadChanges++; lead = sign }
+    maxUs = Math.max(maxUs, d); maxOpp = Math.max(maxOpp, -d)
+  }
+  const sum = (a: number[]) => a.reduce((x, y) => x + y, 0)
+  const fUs = q === 0 ? sum(gs.foulsUs) : gs.foulsUs[q]
+  const fOpp = q === 0 ? sum(gs.foulsOpp) : gs.foulsOpp[q]
+  return {
+    ties, leadChanges, maxLeadUs: maxUs, maxLeadOpp: maxOpp, runUs, runOpp, bench,
+    timeoutsUs: gs.timeoutsUs, timeoutsOpp: gs.timeoutsOpp, foulsUs: fUs, foulsOpp: fOpp,
+    bonusUs: q !== 0 && gs.foulsOpp[q] >= 4, bonusOpp: q !== 0 && gs.foulsUs[q] >= 4,
+    sequenceKnown: !game.imported,
+  }
+}

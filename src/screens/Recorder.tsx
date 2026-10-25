@@ -141,12 +141,12 @@ export default function Recorder({ id }: { id: string }) {
         <div className="scoreboard">
           <div className="team"><div className="nm">{clubName}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span className={`fl ${gq.foulsUs[q] >= 5 ? 'bonus' : ''}`}>{gq.foulsUs[q]} Falli</span><span className="pts">{gs.us}</span>
+              <span className={`fl ${gq.foulsUs[q] >= 4 ? 'bonus' : ''}`}>{gq.foulsUs[q]} Falli</span><span className="pts">{gs.us}</span>
             </div></div>
           <span className="qbadge">{qLabel(q)}</span>
           <div className="team"><div className="nm">{game.opponent}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span className="pts">{gs.opp}</span><span className={`fl ${gq.foulsOpp[q] >= 5 ? 'bonus' : ''}`}>Falli {gq.foulsOpp[q]}</span>
+              <span className="pts">{gs.opp}</span><span className={`fl ${gq.foulsOpp[q] >= 4 ? 'bonus' : ''}`}>Falli {gq.foulsOpp[q]}</span>
             </div></div>
         </div>
         <button className="endq" onClick={endQuarter}>Fine {qLabel(q)}</button>

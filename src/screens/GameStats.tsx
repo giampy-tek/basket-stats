@@ -6,6 +6,8 @@ import { Court, ShotDot, go } from '../ui'
 import { boxscorePng, shareOrDownload } from '../boxscore'
 import { EventList } from '../EventList'
 import { ShotMapPanel } from './ShotMap'
+import { ShotDotsMaps } from '../ShotDots'
+import { computeTrend } from '../stats'
 import { zoneOf, type Zone } from '../court'
 import { qLabel } from '../eventText'
 import type { Game, PStat } from '../types'
@@ -98,6 +100,34 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
       </div>
 
       <div className="card pad">
+        <div className="section-title" style={{ margin: '0 0 10px' }}>Andamento</div>
+        <div className="tablewrap">
+          <table className="stats">
+            <thead><tr>
+              <th>Periodo</th><th>Parità</th><th>Cambi vantaggio</th><th>Max vantaggio noi</th><th>Max vantaggio loro</th>
+              <th>Parziale più lungo noi</th><th>Parziale più lungo loro</th><th>Punti dalla panchina</th>
+              <th>Timeout noi</th><th>Timeout loro</th><th>Falli noi</th><th>Falli loro</th><th>Bonus noi</th><th>Bonus loro</th>
+            </tr></thead>
+            <tbody>
+              {[0, ...Array.from({ length: maxQ }, (_, i) => i + 1)].map((i) => {
+                const tr = computeTrend(game, i)
+                const sq = (v: number | string) => (tr.sequenceKnown ? v : '–')
+                return (
+                  <tr key={i}>
+                    <td>{i === 0 ? 'Partita' : `${i}° periodo`}</td>
+                    <td>{sq(tr.ties)}</td><td>{sq(tr.leadChanges)}</td><td>{sq(tr.maxLeadUs)}</td><td>{sq(tr.maxLeadOpp)}</td>
+                    <td>{sq(tr.runUs)}</td><td>{sq(tr.runOpp)}</td><td>{tr.bench}</td>
+                    <td>{tr.timeoutsUs}</td><td>{tr.timeoutsOpp}</td><td>{tr.foulsUs}</td><td>{tr.foulsOpp}</td>
+                    <td>{i === 0 ? '' : tr.bonusUs ? 'sì' : 'no'}</td><td>{i === 0 ? '' : tr.bonusOpp ? 'sì' : 'no'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 0 }}>Il punteggio riparte da 0-0 in ogni periodo. Bonus: 4 o più falli di squadra nel periodo.{game.imported ? ' In questa partita importata l’ordine dei canestri non è quello reale, quindi parità, cambi di vantaggio e parziali non sono calcolabili.' : ''}</p>
+      </div>
+      <div className="card pad">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Tiri per zona</div>
         {game.imported && <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: -4 }}>Partita importata: le percentuali per zona ci sono, ma le posizioni dei tiri sul campo no, quindi le mappe sono vuote.</p>}
         <div className="zones">
@@ -131,16 +161,7 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
         <div className="section-title" style={{ margin: '0 0 10px' }}>Mappa di tiro</div>
         <ShotMapPanel games={[game]} heading="Squadra" />
       </div>
-      <div className="maps">
-        {[['Segnati', made], ['Sbagliati', missed]].map(([title, list]) => (
-          <div key={title as string} className="card" style={{ overflow: 'hidden' }}>
-            <div className="map-title"><span>{title as string}</span><span style={{ color: 'var(--muted)' }}>{(list as typeof shots).length}</span></div>
-            <Court>
-              {(list as typeof shots).map((e) => <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} label={String(numberOf(e.playerId) ?? '')} r={0.38} />)}
-            </Court>
-          </div>
-        ))}
-      </div>
+      <ShotDotsMaps shots={shots} numberOf={numberOf} />
       <div className="card pad">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Modifica azioni {q === 0 ? 'della partita' : `del ${qLabel(q)}`}</div>
         <p style={{ color: 'var(--muted)', marginTop: 0, fontSize: 14 }}>Cambia l’esito di un tiro (✓/✗) o i punti (2P/3P), assegna l’azione a un altro giocatore, eliminala o aggiungine una. Le statistiche si aggiornano subito.</p>

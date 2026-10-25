@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { computeSeason, pct, zoneTotals } from '../stats'
 import { ShotMapPanel } from './ShotMap'
+import { ShotDotsMaps } from '../ShotDots'
 import { StatsTable, type Row } from '../StatsTable'
 
 export default function SeasonStats() {
@@ -72,6 +73,9 @@ export default function SeasonStats() {
             <div className="section-title" style={{ margin: '0 0 10px' }}>Mappa di tiro</div>
             <ShotMapPanel games={games.filter((g) => g.seasonId === seasonId && g.status === 'done')} />
           </div>
+        )}
+        {rows.length > 0 && (
+          <ShotDotsMaps shots={events.filter((e) => e.type === 'shot')} numberOf={(id) => season.roster.find((r) => r.playerId === id)?.number} />
         )}
       </div>
     </>
