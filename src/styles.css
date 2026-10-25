@@ -382,3 +382,10 @@ html.no-scroll .screen { height: 100dvh; min-height: 0; }
 @media (prefers-reduced-motion: reduce) {
   .pg-fwd, .pg-back, .pg-fade, .modal-back, .modal, .overlay, .drawer-back, .ev-drawer { animation: none; }
 }
+
+/* tabella stagione */
+table.stats.season td.namecol, table.stats.season th.namecol { min-width: 190px; max-width: 230px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 1; text-align: left; padding-left: 14px; }
+table.stats.season tr.team td.namecol { background: var(--cream); }
+table.stats.season tr.total td.namecol { background: var(--ink); }
+table.stats.season thead th.namecol { background: var(--cream); z-index: 2; }
+table.stats.season td { padding: 10px 7px; }

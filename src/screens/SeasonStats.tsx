@@ -3,24 +3,26 @@ import { useStore } from '../store'
 import { computeSeason, pct, zoneTotals } from '../stats'
 import { ShotMapPanel } from './ShotMap'
 import { ShotDotsMaps } from '../ShotDots'
-import { StatsTable, type Row } from '../StatsTable'
+import { SeasonTable, type SeasonRow } from '../SeasonTable'
+import { Modal } from '../ui'
 
 export default function SeasonStats() {
   const { games, seasons, seasonId, players, clubName } = useStore()
   const season = seasons.find((s) => s.id === seasonId)
   const [avg, setAvg] = useState(false)
+  const [help, setHelp] = useState(false)
   if (!season) return <div className="page">Nessuna stagione</div>
   const agg = computeSeason(games.filter((g) => g.seasonId === seasonId))
   const events = games.filter((g) => g.seasonId === seasonId && g.status === 'done').flatMap((g) => g.events)
   const zt = zoneTotals(events)
   const zl = [['campana', 'Campana'], ['media', 'Media distanza'], ['da3', 'Da 3']] as const
-  const rows: Row[] = season.roster
+  const rows: SeasonRow[] = season.roster
     .map((r) => ({ r, a: agg.agg[r.playerId] }))
     .filter((x) => x.a)
-    .sort((a, b) => b.a.stat.pir - a.a.stat.pir)
+    .sort((a, b) => b.a.stat.pts - a.a.stat.pts || b.a.stat.min - a.a.stat.min)
     .map(({ r, a }) => {
       const p = players.find((x) => x.id === r.playerId)
-      return { key: r.playerId, label: `#${r.number} ${p?.last} ${p?.first}`, s: a.stat, games: a.games }
+      return { key: r.playerId, label: `#${r.number} ${p?.last ?? ''} ${p?.first ?? ''}`.trim(), s: a.stat, games: a.games }
     })
   return (
     <>
@@ -41,9 +43,10 @@ export default function SeasonStats() {
             <button className={!avg ? 'on' : ''} onClick={() => setAvg(false)}>Totali</button>
             <button className={avg ? 'on' : ''} onClick={() => setAvg(true)}>Medie</button>
           </div>
+          <button className="round" style={{ width: 44, height: 44, fontWeight: 700, color: 'var(--brand)' }} title="Legenda" onClick={() => setHelp(true)}>?</button>
         </div>
         {rows.length === 0 ? <div className="empty card">Nessuna partita terminata: le statistiche appaiono qui appena ne chiudi una.</div> :
-          <StatsTable mode="season" rows={rows} total={agg.total} avg={avg} totalGames={agg.games} />}
+          <SeasonTable rows={rows} team={agg.team} total={agg.total} avg={avg} totalGames={agg.games} />}
         {rows.length > 0 && (
           <div className="card pad">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -78,6 +81,24 @@ export default function SeasonStats() {
           <ShotDotsMaps shots={events.filter((e) => e.type === 'shot')} numberOf={(id) => season.roster.find((r) => r.playerId === id)?.number} />
         )}
       </div>
+      {help && (
+        <Modal title="Legenda" onClose={() => setHelp(false)}>
+          <div className="card list" style={{ marginBottom: 12 }}>
+            {LEGEND.map(([k, d]) => <div key={k} className="list-row" style={{ padding: '10px 16px' }}><b style={{ width: 64, flex: 'none' }}>{k}</b><span className="s" style={{ color: 'var(--ink)' }}>{d}</span></div>)}
+          </div>
+          <button className="btn ghost block" onClick={() => setHelp(false)}>Chiudi</button>
+        </Modal>
+      )}
     </>
   )
 }
+
+const LEGEND: [string, string][] = [
+  ['G', 'Partite giocate'], ['Min', 'Minuti giocati'], ['Pt', 'Punti'], ['P/M', 'Punti per minuto giocato'],
+  ['2P / 3P / TL', 'Segnati (S), tentati (T) e percentuale: tiri da 2, da 3 e liberi'],
+  ['F / FS', 'Falli fatti / falli subiti'], ['RO / RD / RT', 'Rimbalzi offensivi, difensivi, totali'],
+  ['Rec / PP', 'Palle recuperate / palle perse'], ['Ass', 'Assist'], ['SD / SS', 'Stoppate date / subite'],
+  ['PIR', 'Indice di valutazione FIP: VAL + falli subiti − falli commessi − stoppate subite'],
+  ['VAL', 'Valutazione: punti − tiri sbagliati + rimbalzi + assist − palle perse + recuperi + stoppate date'],
+  ['Medie', 'Ogni valore diviso per le partite giocate'],
+]

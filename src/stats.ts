@@ -142,6 +142,7 @@ export interface SeasonAgg {
 export function computeSeason(games: Game[]) {
   const agg: Record<string, SeasonAgg> = {}
   const total = blank('total')
+  const team = blank('team')
   let oppPts = 0
   let usPts = 0
   const done = games.filter((g) => g.status === 'done')
@@ -155,8 +156,9 @@ export function computeSeason(games: Game[]) {
       if (s.min > 0 || s.pts > 0 || s.a2 + s.a3 + s.af > 0) a.games++
     }
     addStat(total, gs.total)
+    addStat(team, gs.team)
   }
-  return { agg, total, games: done.length, oppPts, usPts }
+  return { agg, total, team, games: done.length, oppPts, usPts }
 }
 
 export function fmtTime(sec: number) {
