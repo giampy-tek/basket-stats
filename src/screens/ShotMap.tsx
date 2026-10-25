@@ -89,7 +89,7 @@ export function ShotMapPanel({ games, heading }: { games: Game[]; heading?: stri
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 18, marginTop: 14, alignItems: 'start' }}>
-            <Court plain lineWidth={view === 'zone' ? 0.16 : 0.09} under={view === 'zone' ? (
+            <Court plain detail={view !== 'zone'} lineWidth={view === 'zone' ? 0.16 : 0.09} under={view === 'zone' ? (
               <g>
                 <defs>
                   <pattern id="hatch" width="0.4" height="0.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
