@@ -16,6 +16,11 @@ create index if not exists docs_user_updated on public.docs (user_id, updated_at
 
 alter table public.docs enable row level security;
 
+-- Permessi espliciti (servono se "Automatically expose new tables" è spento):
+-- solo gli utenti loggati, mai gli anonimi.
+revoke all on public.docs from anon;
+grant select, insert, update, delete on public.docs to authenticated;
+
 drop policy if exists "docs: solo il proprietario" on public.docs;
 create policy "docs: solo il proprietario" on public.docs
   for all to authenticated
