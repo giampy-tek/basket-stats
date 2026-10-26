@@ -9,6 +9,7 @@ export default function Prepare({ id }: { id: string }) {
   const game = games.find((g) => g.id === id)
   const season = seasons.find((s) => s.id === game?.seasonId)
   const big = (season?.roster.length ?? 0) > MAX_CALLED // roster più grande di 12: serve la lista dei convocati
+  const [useCalled, setUseCalled] = useState(big || !!game?.called) // con roster fino a 12 i convocati sono facoltativi
   const [called, setCalled] = useState<string[]>(game?.called ?? [])
   const [step, setStep] = useState<'call' | 'five'>(big && !game?.called ? 'call' : 'five')
   const [starters, setStarters] = useState<string[]>(game?.starters ?? [])
@@ -16,13 +17,14 @@ export default function Prepare({ id }: { id: string }) {
   if (!game || !season) return <Hero title="Partita non trovata" back={{ label: 'Partite', to: '/games' }} />
 
   const roster = [...season.roster].sort((a, b) => a.number - b.number)
-  const pool = big ? roster.filter((r) => called.includes(r.playerId)) : roster
+  const pool = useCalled ? roster.filter((r) => called.includes(r.playerId)) : roster
   const toggleCall = (pid: string) => setCalled((c) => (c.includes(pid) ? c.filter((x) => x !== pid) : c.length < MAX_CALLED ? [...c, pid] : c))
   const toggle = (pid: string) =>
     setStarters((s) => (s.includes(pid) ? s.filter((x) => x !== pid) : s.length < 5 ? [...s, pid] : s))
+  const openCall = () => { if (!useCalled) setCalled(roster.slice(0, MAX_CALLED).map((r) => r.playerId)); setUseCalled(true); setStep('call') }
   const goFive = () => { setStarters((s) => s.filter((x) => called.includes(x))); setStep('five') }
   const start = () => {
-    updateGame(game.id, { starters, called: big ? called : undefined, quarterLength: len * 60, status: 'live', quarter: 1 })
+    updateGame(game.id, { starters, called: useCalled ? called : undefined, quarterLength: len * 60, status: 'live', quarter: 1 })
     go(`/record/${game.id}`)
   }
 
@@ -60,9 +62,9 @@ export default function Prepare({ id }: { id: string }) {
 
   return (
     <>
-      <Hero title={`vs ${game.opponent}`} sub={big ? `2 di 2 · Quintetto base · ${called.length} convocati` : 'Scegli il quintetto base'}
-        back={big ? undefined : { label: 'Partite', to: `/games/${game.id}` }}
-        right={big ? <button className="pill" onClick={() => setStep('call')}>‹ Convocati</button> : undefined} />
+      <Hero title={`vs ${game.opponent}`} sub={useCalled ? `2 di 2 · Quintetto base · ${called.length} convocati` : 'Scegli il quintetto base'}
+        back={useCalled ? undefined : { label: 'Partite', to: `/games/${game.id}` }}
+        right={useCalled ? <button className="pill" onClick={() => setStep('call')}>‹ Convocati</button> : <button className="pill" onClick={openCall}>Scegli i convocati</button>} />
       <div className="page">
         <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>
           Quintetto base <span style={{ color: 'var(--brand)' }}>{starters.length}/5</span>

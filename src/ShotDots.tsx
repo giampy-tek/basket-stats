@@ -11,7 +11,7 @@ export function ShotDotsMaps({ shots, numberOf }: { shots: GameEvent[]; numberOf
         <div key={title} className="card" style={{ overflow: 'hidden' }}>
           <div className="map-title"><span>{title}</span><span style={{ color: 'var(--muted)' }}>{list.length}</span></div>
           <Court>
-            {list.map((e) => <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} label={String(numberOf(e.playerId) ?? '')} r={0.38} />)}
+            {list.map((e) => <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} label={String(numberOf(e.playerId) ?? '')} r={0.5} />)}
           </Court>
         </div>
       ))}

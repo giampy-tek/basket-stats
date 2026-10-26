@@ -90,11 +90,13 @@ export function Court({ onTap, children, under, plain = false, lineWidth = 0.07,
 }
 
 export function ShotDot({ x, y, made, label, r = 0.36 }: { x: number; y: number; made: boolean; label?: string; r?: number }) {
+  // il numero va al centro esatto del cerchio: niente dominantBaseline (Safari lo interpreta male), si usa dy
+  const size = r * (label && label.length >= 2 ? 1.12 : 1.4)
   return (
     <g>
       <circle cx={x} cy={y} r={r} fill={made ? '#1f7a45' : '#c0252d'} stroke="#fff" strokeWidth={0.06} />
       {label && (
-        <text x={x} y={y + 0.01} textAnchor="middle" dominantBaseline="central" fontSize={r * 1.15} fontWeight={700} fill="#fff">
+        <text x={x} y={y} dy="0.36em" textAnchor="middle" fontSize={size} fontWeight={700} fill="#fff" style={{ fontFamily: 'var(--body)', pointerEvents: 'none' }}>
           {label}
         </text>
       )}

@@ -236,7 +236,7 @@ export default function Recorder({ id }: { id: string }) {
             <div>
               <Court onTap={(x, y) => setPt({ x, y })}>
                 {courtShots.map((e) => (
-                  <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} r={0.3} label={showAll ? String(numberOf(e.playerId ?? '')) : undefined} />
+                  <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} r={showAll ? 0.45 : 0.3} label={showAll ? String(numberOf(e.playerId ?? '')) : undefined} />
                 ))}
                 {pt && <g><circle cx={pt.x} cy={pt.y} r={0.45} fill="none" stroke="#2a1f1a" strokeWidth={0.12} /><circle cx={pt.x} cy={pt.y} r={0.1} fill="#2a1f1a" /></g>}
               </Court>

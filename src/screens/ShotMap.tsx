@@ -112,7 +112,7 @@ export function ShotMapPanel({ games, heading }: { games: Game[]; heading?: stri
                   </g>
                 )
               })}
-              {view === 'dots' && shown.map((e) => <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} r={0.26} />)}
+              {view === 'dots' && shown.map((e) => <ShotDot key={e.id} x={e.x!} y={e.y!} made={!!e.made} r={who === 'all' ? 0.45 : 0.3} label={who === 'all' ? String(season.roster.find((r) => r.playerId === e.playerId)?.number ?? '') : undefined} />)}
             </Court>
             <div>
               <div className="tablewrap">
