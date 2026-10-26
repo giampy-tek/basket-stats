@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { useStore, playerName, useCanEdit } from '../store'
 import { Avatar, Hero, Modal, Field } from '../ui'
 import { photoToDataUrl } from '../photo'
@@ -24,7 +25,7 @@ export default function Roster() {
   return (
     <>
       <Hero title="Roster" sub={`${season.year} ${season.category}`} back={{ label: 'Stagioni', to: '/seasons' }}
-        right={canEdit ? <button className="pill" onClick={() => setAdding(true)}>＋ Nuovo</button> : undefined} />
+        right={canEdit ? <button className="pill" onClick={() => setAdding(true)}><Ic name="plus" /> Nuovo</button> : undefined} />
       <div className="page two-col">
         <div>
           <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between' }}>In roster <span style={{ color: 'var(--brand)' }}>{inRoster.length}</span></div>
@@ -37,6 +38,7 @@ export default function Roster() {
                     onChange={(e) => setNumber(season.id, r.playerId, Number(e.target.value.replace(/\D/g, '')) || 0)} />
                   <label className="avatar-btn" title="Cambia foto" style={canEdit ? undefined : { pointerEvents: 'none' }}>
                     <Avatar photo={p?.photo} size={52} />
+                    {canEdit && <span className="cam"><Ic name="camera" size={14} /></span>}
                     <input type="file" accept="image/*" hidden onChange={async (e) => {
                       const f = e.target.files?.[0]
                       if (f && p) updatePlayer(p.id, { photo: await photoToDataUrl(f) })
@@ -62,7 +64,7 @@ export default function Roster() {
             {available.length === 0 && <div className="empty">Nessun altro giocatore disponibile.</div>}
             {available.map((p) => (
               <button className="list-row" key={p.id} disabled={!canEdit} onClick={() => addToRoster(season.id, p.id, 0)}>
-                <span className="t">{playerName(p)}</span><span className="end" style={{ fontSize: 24, color: 'var(--brand)' }}>＋</span>
+                <span className="t">{playerName(p)}</span><span className="end" style={{ color: 'var(--brand)' }}><Ic name="plus" size={26} /></span>
               </button>
             ))}
           </div>

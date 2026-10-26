@@ -110,3 +110,29 @@ export function Avatar({ photo, size = 52, label }: { photo?: string; size?: num
     </span>
   )
 }
+
+const ICONS: Record<string, string> = {
+  ball: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5.7 5.7c3 3 3 9.6 0 12.6M18.3 5.7c-3 3-3 9.6 0 12.6"/>',
+  chart: '<path d="M5 20V11M12 20V4M19 20v-6"/>',
+  gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  clipboard: '<rect x="5.5" y="4" width="13" height="17" rx="2"/><path d="M9 4V3h6v1M9 11h6M9 15h4"/>',
+  play: '<path d="M7 4.5v15l12-7.5z" fill="currentColor"/>',
+  download: '<path d="M12 3v12M7 11l5 5 5-5M4 21h16"/>',
+  upload: '<path d="M12 17V5M7 9l5-5 5 5M4 21h16"/>',
+  pencil: '<path d="M4 20l1-4L16.5 4.5l3 3L8 19zM14 7l3 3"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17.5 14c2.7 0 4.5 2 4.5 5"/>',
+  swap: '<path d="M4 8h14M14.5 4L18.500 8l-4 4M20 16H6M9.5 12L5.500 16l4 4"/>',
+  trash: '<path d="M4 7h16M9.500 7V4h5v3M6.500 7l1 13h9l1-13M10 11v6M14 11v6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  refresh: '<path d="M20 12a8 8 0 1 1-2.5-5.800M20 4v5h-5"/>',
+  reopen: '<path d="M4 12a8 8 0 1 0 2.500-5.800M4 4v5h5"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.500"/>',
+}
+
+/** Icona SVG: prende il colore del testo (currentColor), quindi segue il colore della squadra dove serve. */
+export function Ic({ name, size }: { name: keyof typeof ICONS | string; size?: number }) {
+  return (
+    <svg className="ic" viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: ICONS[name] ?? '' }} />
+  )
+}

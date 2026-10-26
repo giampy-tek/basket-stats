@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { useStore } from '../store'
 import { Modal, Field, go } from '../ui'
 import { AccountModal, SyncBadge } from './Account'
@@ -79,7 +80,7 @@ export default function Dashboard() {
       <div className="page" style={{ paddingTop: 40 }}>
         {cloudEnabled && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
-            <button className="pill" style={{ background: 'var(--brand)' }} onClick={() => setTeams(true)}>⇄ Squadre{role ? ` · ${ROLE_LABEL[role]}` : ''}</button>
+            <button className="pill" style={{ background: 'var(--brand)' }} onClick={() => setTeams(true)}><Ic name="swap" /> Squadre{role ? ` · ${ROLE_LABEL[role]}` : ''}</button>
             <button className="pill" style={{ background: 'var(--brand)' }} onClick={() => setAcc(true)}><SyncBadge /></button>
           </div>
         )}
@@ -96,13 +97,13 @@ export default function Dashboard() {
         <div className="section-title">Accesso rapido</div>
         <div className="card list">
           <button className="list-row" onClick={() => go('/games')}>
-            <span className="ico">🏀</span><div><div className="t">Partite</div><div className="s">Registra una partita dal vivo</div></div>
+            <span className="ico"><Ic name="ball" size={24} /></span><div><div className="t">Partite</div><div className="s">Registra una partita dal vivo</div></div>
           </button>
           <button className="list-row" onClick={() => go('/stats/season')}>
-            <span className="ico">▥</span><div><div className="t">Statistiche stagione</div><div className="s">Totali e medie del roster</div></div>
+            <span className="ico"><Ic name="chart" size={24} /></span><div><div className="t">Statistiche stagione</div><div className="s">Totali e medie del roster</div></div>
           </button>
           <button className="list-row" onClick={() => { setName(clubName); setOpen(true) }}>
-            <span className="ico">⚙</span><div><div className="t">Impostazioni</div><div className="s">Nome del club, dati</div></div>
+            <span className="ico"><Ic name="gear" size={24} /></span><div><div className="t">Impostazioni</div><div className="s">Nome del club, dati</div></div>
           </button>
         </div>
       </div>
@@ -117,14 +118,14 @@ export default function Dashboard() {
           <div className="section-title" style={{ marginTop: 6 }}>Importa da Basket Recorder Pro</div>
           <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 8px' }}>Scegli uno o più file CSV di partita. Le partite entrano nella stagione corrente; i giocatori si abbinano dal numero di maglia.</p>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 10 }}>
-            <label className="btn ghost">⬆ Importa partite (CSV)<input type="file" accept=".csv,text/csv" multiple hidden onChange={(e) => { void importCsv(e.target.files); e.target.value = '' }} /></label>
+            <label className="btn ghost"><Ic name="upload" /> Importa partite (CSV)<input type="file" accept=".csv,text/csv" multiple hidden onChange={(e) => { void importCsv(e.target.files); e.target.value = '' }} /></label>
           </div>
           {importMsg && <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 14, background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 12, margin: '0 0 14px', userSelect: 'text' }}>{importMsg}</pre>}
           </>)}
           <div className="section-title" style={{ marginTop: 6 }}>Backup</div>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 18 }}>
-            <button className="btn ghost" onClick={backup}>⬇ Esporta backup</button>
-            {canEdit && <label className="btn ghost">⬆ Importa backup<input type="file" accept="application/json" hidden onChange={(e) => restore(e.target.files?.[0])} /></label>}
+            <button className="btn ghost" onClick={backup}><Ic name="download" /> Esporta backup</button>
+            {canEdit && <label className="btn ghost"><Ic name="upload" /> Importa backup<input type="file" accept="application/json" hidden onChange={(e) => restore(e.target.files?.[0])} /></label>}
           </div>
           <div className="row-actions">
             {canEdit && <button className="btn" onClick={() => { setClubName(name.trim() || clubName); setOpen(false) }}>Salva</button>}

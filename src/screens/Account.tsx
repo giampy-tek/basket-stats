@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { Modal, Field } from '../ui'
 import { ALLOW_SIGNUP } from '../cloudConfig'
 import { cloudEnabled, deleteCloudData, resetPassword, signIn, signOut, signUp, sync, useCloud } from '../cloud'
@@ -39,7 +40,7 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
         </div>
         <p style={{ color: 'var(--muted)', fontSize: 14 }}>Le partite si salvano sempre sull’iPad e, quando c’è rete, anche nel cloud. Puoi registrare senza Wi-Fi.</p>
         <div className="row-actions">
-          <button className="btn" onClick={() => void sync()}>↻ Sincronizza ora</button>
+          <button className="btn" onClick={() => void sync()}><Ic name="refresh" /> Sincronizza ora</button>
           <button className="btn ghost" onClick={async () => {
             const clear = confirm('Uscire dall’account?\n\nOK = esci e togli i dati da questo iPad (restano nel cloud)\nAnnulla = scegli dopo')
             if (clear) { await signOut(true); onClose(); return }

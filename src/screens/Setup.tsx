@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { useStore } from '../store'
 import { Field } from '../ui'
 import { PRESETS, readable } from '../theme'
@@ -13,7 +14,7 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (c: 
         <button key={c} title={name} aria-label={name} className={value.toLowerCase() === c ? 'on' : ''} style={{ background: c }} onClick={() => onChange(c)} />
       ))}
       <label className={`custom ${!isPreset ? 'on' : ''}`} title="Colore personalizzato" style={!isPreset ? { background: readable(value) } : undefined}>
-        {isPreset ? '＋' : ''}
+        {isPreset ? <Ic name="plus" size={22} /> : ''}
         <input type="color" value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#b5440c'} onChange={(e) => onChange(e.target.value)} />
       </label>
     </div>
@@ -71,7 +72,7 @@ export default function Setup() {
         <div className="field"><label>Colore della squadra</label><ColorPicker value={brandColor} onChange={setBrandColor} /></div>
         <button className="btn block" style={{ marginTop: 6 }} disabled={!name.trim()} onClick={create}>Crea squadra</button>
         <div className="row-actions" style={{ marginTop: 18 }}>
-          <label className="btn ghost small">⬆ Ho un backup<input type="file" accept="application/json" hidden onChange={(e) => restore(e.target.files?.[0])} /></label>
+          <label className="btn ghost small"><Ic name="upload" /> Ho un backup<input type="file" accept="application/json" hidden onChange={(e) => restore(e.target.files?.[0])} /></label>
           {cloudEnabled && <button className="btn ghost small" onClick={() => setAcc(true)}>Ho già un account</button>}
         </div>
       </div>

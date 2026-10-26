@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { useStore } from '../store'
 import { computeGame, pct } from '../stats'
 import { StatsTable, type Row } from '../StatsTable'
@@ -188,7 +189,7 @@ export default function GameStats({ id }: { id: string }) {
         <button className="round" onClick={() => history.back()}>‹</button>
         <h1>Stats partita · {game.opponent}</h1>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn small" onClick={exportPng}>⬇ Tabellino PNG</button>
+          <button className="btn small" onClick={exportPng}><Ic name="download" /> Tabellino PNG</button>
           {game.status === 'live' && <button className="btn small ghost" onClick={() => go(`/record/${id}`)}>Registratore</button>}
         </div>
       </div>

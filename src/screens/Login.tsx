@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { Field } from '../ui'
 import { resetPassword, signIn } from '../cloud'
 
@@ -21,7 +22,7 @@ export default function Login() {
     <div className="setup">
       <div className="setup-side">
         <div style={{ fontFamily: 'var(--display)', letterSpacing: '.3em', fontWeight: 700, fontSize: 18 }}>BASKET STATS</div>
-        <div className="setup-logo">🏀</div>
+        <div className="setup-logo"><Ic name="ball" size={70} /></div>
         <h1 style={{ fontSize: 64, lineHeight: 0.95 }}>Statistiche basket</h1>
         <div style={{ marginTop: 14, opacity: 0.9 }}>Accesso riservato</div>
       </div>

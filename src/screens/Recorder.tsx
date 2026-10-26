@@ -66,6 +66,7 @@ export default function Recorder({ id }: { id: string }) {
   const [drawer, setDrawer] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [redo, setRedo] = useState<GameEvent[]>([])
+  const [dismissed, setDismissed] = useState<string[]>([]) // espulsi lasciati in campo (nessuno in panchina)
 
   // pagina unica: niente scroll né rimbalzo della pagina mentre si registra
   useEffect(() => {
@@ -87,6 +88,7 @@ export default function Recorder({ id }: { id: string }) {
   const s = gs.players[cur]
   const sq = gq.players[cur]
   const q = game.quarter
+  const ejected = onCourt.find((pid) => (gs.players[pid]?.f ?? 0) >= 5 && !dismissed.includes(pid))
 
   const rec = (e: Omit<GameEvent, 'id' | 'q'>) => { pushEvent(game.id, { q, ...e }); setRedo([]) }
   const recP = (e: Omit<GameEvent, 'id' | 'q' | 'playerId'>) => rec({ playerId: cur, ...e })
@@ -141,12 +143,12 @@ export default function Recorder({ id }: { id: string }) {
         <div className="scoreboard">
           <div className="team"><div className="nm">{clubName}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span className={`fl ${gq.foulsUs[q] >= 4 ? 'bonus' : ''}`}>{gq.foulsUs[q]} Falli</span><span className="pts">{gs.us}</span>
+              <span className={`fl ${gq.foulsUs[q] >= 4 ? 'bonus' : ''}`}>{gq.foulsUs[q]} Falli</span>{gq.foulsUs[q] >= 4 && <span className="bonus-tag">BONUS</span>}<span className="pts">{gs.us}</span>
             </div></div>
           <span className="qbadge">{qLabel(q)}</span>
           <div className="team"><div className="nm">{game.opponent}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span className="pts">{gs.opp}</span><span className={`fl ${gq.foulsOpp[q] >= 4 ? 'bonus' : ''}`}>Falli {gq.foulsOpp[q]}</span>
+              <span className="pts">{gs.opp}</span>{gq.foulsOpp[q] >= 4 && <span className="bonus-tag">BONUS</span>}<span className={`fl ${gq.foulsOpp[q] >= 4 ? 'bonus' : ''}`}>Falli {gq.foulsOpp[q]}</span>
             </div></div>
         </div>
         <button className="endq" onClick={endQuarter}>Fine {qLabel(q)}</button>
@@ -165,7 +167,7 @@ export default function Recorder({ id }: { id: string }) {
                   <div className="nm"><span className="nn2">{numberOf(pid)}</span> {nameOf(pid)}</div>
                   <div className="pt">{st.pts} Pt · {sqp?.pts ?? 0} nel Q</div>
                 </span>
-                <span className="fouls">Falli<b className={fl(st.f)}>{st.f}</b></span>
+                <span className={`fouls ${fl(st.f)}`}>{st.f >= 4 ? `${st.f} FALLI` : 'Falli'}{st.f < 4 && <b>{st.f}</b>}</span>
               </button>
             )
           })}
@@ -327,6 +329,10 @@ export default function Recorder({ id }: { id: string }) {
           <button className="btn ghost block" style={{ marginTop: 12 }} onClick={close}>Chiudi</button>
         </Modal>
       )}
+      {ejected && panel !== 'subs' && (
+        <Ejected game={game} gs={gs} pid={ejected} onUndo={doUndo} onDone={() => setRedo([])}
+          onKeep={() => setDismissed((d) => [...d, ejected])} />
+      )}
       {panel === 'subs' && <Subs game={game} gs={gs} onClose={close} onDone={() => setRedo([])} />}
       {panel === 'stats' && (
         <div className="overlay">
@@ -337,6 +343,64 @@ export default function Recorder({ id }: { id: string }) {
           <div className="page"><GameStatsBody game={game} live /></div>
         </div>
       )}
+    </div>
+  )
+}
+
+/** Giocatore con 5 falli: va sostituito. Si sceglie chi entra e a che punto del quarto. */
+function Ejected({ game, gs, pid, onUndo, onKeep, onDone }: {
+  game: Game; gs: ReturnType<typeof computeGame>; pid: string; onUndo: () => void; onKeep: () => void; onDone: () => void
+}) {
+  const { seasons, players, pushEvent } = useStore()
+  const season = seasons.find((s) => s.id === game.seasonId)!
+  const q = game.quarter
+  const L = game.quarterLength
+  const lastSub = [...game.events].reverse().find((e) => e.q === q && e.type === 'sub')
+  const [remaining, setRemaining] = useState(lastSub?.remaining ?? L)
+  const [pick, setPick] = useState('')
+  const adj = (d: number) => setRemaining((r) => Math.min(L, Math.max(0, r + d)))
+  const numberOf = (id: string) => season.roster.find((r) => r.playerId === id)?.number ?? 0
+  const nm = (id: string) => { const p = players.find((x) => x.id === id); return p ? `${p.first[0]}. ${p.last}` : '' }
+  const eligible = [...season.roster]
+    .filter((r) => (!game.called || game.called.includes(r.playerId)) && !gs.onCourt.includes(r.playerId) && (gs.players[r.playerId]?.f ?? 0) < 5)
+    .sort((a, b) => a.number - b.number)
+  const confirm = () => {
+    pushEvent(game.id, { q, type: 'sub', remaining, out: [pid], in: pick ? [pick] : [] })
+    onDone()
+  }
+  return (
+    <div className="modal-back">
+      <div className="modal" style={{ width: 'min(620px, 100%)' }}>
+        <h2 style={{ color: 'var(--red)' }}>Giocatore espulso</h2>
+        <div className="eject-note">{numberOf(pid)} {nm(pid)} ha 5 falli e deve uscire. Con chi lo vuoi cambiare?</div>
+        <div className="subs-time" style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>TEMPO RIMANENTE ({qLabel(q)})</div>
+          <div className="clock" style={{ fontSize: 44 }}>{fmtTime(remaining)}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <Hold onStep={() => adj(5)}>+5s</Hold>
+            <Hold onStep={() => adj(-5)}>−5s</Hold>
+          </div>
+        </div>
+        {eligible.length === 0 ? (
+          <p style={{ color: 'var(--muted)' }}>Nessun giocatore disponibile in panchina (tutti gli altri hanno 5 falli o non sono convocati).</p>
+        ) : (
+          <div className="card list" style={{ marginBottom: 12, maxHeight: '32vh', overflowY: 'auto' }}>
+            {eligible.map((r) => {
+              const st = gs.players[r.playerId]
+              return (
+                <button key={r.playerId} className={`sub-row ${pick === r.playerId ? 'sel' : ''}`} onClick={() => setPick(r.playerId)}>
+                  <span className="n">{r.number}</span><span>{nm(r.playerId)}</span>
+                  <span className="m">{st?.pts ?? 0} pt</span><span style={{ color: (st?.f ?? 0) >= 4 ? '#b58900' : undefined, fontWeight: (st?.f ?? 0) >= 4 ? 800 : undefined }}>{st?.f ?? 0}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <button className="btn block" disabled={eligible.length > 0 && !pick} onClick={eligible.length === 0 ? () => { onKeep() } : confirm}>
+          {eligible.length === 0 ? 'Continua senza sostituto' : 'Conferma il cambio'}
+        </button>
+        <button className="btn ghost block" style={{ marginTop: 8 }} onClick={onUndo}>Annulla l’ultima azione (fallo registrato per errore)</button>
+      </div>
     </div>
   )
 }
@@ -384,9 +448,10 @@ function Subs({ game, gs, onClose, onDone }: { game: Game; gs: ReturnType<typeof
           const p = players.find((x) => x.id === r.playerId)
           const st = gs.players[r.playerId]
           return (
-            <button key={r.playerId} className={`sub-row ${sel.includes(r.playerId) ? 'sel' : ''}`} onClick={() => tog(sel, set, r.playerId)}>
-              <span className="n">{r.number}</span><span>{p?.last} {p?.first}</span>
-              <span className="m">{fmtTime(st?.min ?? 0)}</span><span>{st?.f ?? 0}</span>
+            <button key={r.playerId} className={`sub-row ${sel.includes(r.playerId) ? 'sel' : ''} ${title === 'Fuori' && (st?.f ?? 0) >= 5 ? 'blocked' : ''}`}
+              disabled={title === 'Fuori' && (st?.f ?? 0) >= 5} onClick={() => tog(sel, set, r.playerId)}>
+              <span className="n">{r.number}</span><span>{p?.last} {p?.first}{title === 'Fuori' && (st?.f ?? 0) >= 5 ? ' · espulso (5 falli)' : ''}</span>
+              <span className="m">{fmtTime(st?.min ?? 0)}</span><span style={{ color: (st?.f ?? 0) >= 5 ? 'var(--red)' : (st?.f ?? 0) >= 4 ? '#b58900' : undefined, fontWeight: (st?.f ?? 0) >= 4 ? 800 : undefined }}>{st?.f ?? 0}</span>
             </button>
           )
         })}

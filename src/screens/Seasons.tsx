@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../ui'
 import { useStore, useCanEdit } from '../store'
 import { go, Hero, Modal, Field } from '../ui'
 
@@ -25,7 +26,7 @@ export default function Seasons() {
   return (
     <>
       <Hero title="Stagioni" sub={useStore.getState().clubName} back={{ label: 'Dashboard', to: '/' }}
-        right={canEdit ? <button className="pill" onClick={() => openForm('new')}>＋ Nuova</button> : undefined} />
+        right={canEdit ? <button className="pill" onClick={() => openForm('new')}><Ic name="plus" /> Nuova</button> : undefined} />
       <div className="page" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 28 }}>
         <div>
           {seasons.map((s) => (
@@ -63,7 +64,7 @@ export default function Seasons() {
               <div className="list-row"><span style={{ width: 34, height: 34, borderRadius: 8, background: season.shirt2, border: '1px solid var(--line)' }} /><div><div className="t">Seconda maglia</div><div className="s">{season.shirt2}</div></div></div>
             </div>
             {canEdit && <div className="row-actions">
-              <button className="btn ghost" onClick={() => openForm('edit')}>✎ Modifica</button>
+              <button className="btn ghost" onClick={() => openForm('edit')}><Ic name="pencil" /> Modifica</button>
               <button className="btn danger" onClick={() => { if (confirm('Eliminare la stagione e tutte le sue partite?')) deleteSeason(season.id) }}>Elimina</button>
             </div>}
           </div>

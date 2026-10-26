@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Ic } from '../ui'
 import { useStore, type Role } from '../store'
 import { Field, Modal, go } from '../ui'
 import { ColorPicker } from './Setup'
@@ -55,11 +56,11 @@ export function TeamsModal({ onClose }: { onClose: () => void }) {
         <div className="card pad" style={{ marginBottom: 14 }}>
           <div style={{ fontWeight: 600 }}>Questa squadra è solo su questo dispositivo</div>
           <p style={{ color: 'var(--muted)', fontSize: 14, margin: '4px 0 10px' }}>Caricala nel cloud per ritrovarla su altri dispositivi e poterla condividere.</p>
-          <button className="btn small" disabled={busy || status === 'offline'} onClick={async () => { setBusy(true); setMsg((await uploadActiveClub()) ?? ''); setBusy(false) }}>⬆ Carica nel cloud</button>
+          <button className="btn small" disabled={busy || status === 'offline'} onClick={async () => { setBusy(true); setMsg((await uploadActiveClub()) ?? ''); setBusy(false) }}><Ic name="upload" /> Carica nel cloud</button>
         </div>
       )}
       {activeId !== 'local' && (
-        <button className="btn ghost block" style={{ marginBottom: 10 }} onClick={() => { onClose(); go('/share') }}>👥 Membri e condivisione</button>
+        <button className="btn ghost block" style={{ marginBottom: 10 }} onClick={() => { onClose(); go('/share') }}><Ic name="users" /> Membri e condivisione</button>
       )}
       {creating ? (
         <div className="card pad">
@@ -72,7 +73,7 @@ export function TeamsModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       ) : (
-        cloudEnabled && email && <button className="btn block" onClick={() => { setColor(brandColor); setCreating(true) }}>＋ Nuova squadra</button>
+        cloudEnabled && email && <button className="btn block" onClick={() => { setColor(brandColor); setCreating(true) }}><Ic name="plus" /> Nuova squadra</button>
       )}
       {msg && <p style={{ color: 'var(--red)', fontWeight: 500 }}>{msg}</p>}
     </Modal>

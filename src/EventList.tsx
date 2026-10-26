@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from './ui'
 import { useStore, shortName, useCanEdit } from './store'
 import { ADD_PRESETS, eventLabel, qLabel } from './eventText'
 import { Modal, Field } from './ui'
@@ -32,7 +33,7 @@ export function EventList({ game, quarter = 0, compact = false, allowAdd = false
 
   return (
     <div>
-      {allowAdd && canEdit && <button className="btn small ghost" style={{ marginBottom: 10 }} onClick={() => { setForm({ preset: 's2+', player: roster[0]?.playerId ?? '', q: quarter || game.quarter }); setAdding(true) }}>＋ Aggiungi azione</button>}
+      {allowAdd && canEdit && <button className="btn small ghost" style={{ marginBottom: 10 }} onClick={() => { setForm({ preset: 's2+', player: roster[0]?.playerId ?? '', q: quarter || game.quarter }); setAdding(true) }}><Ic name="plus" /> Aggiungi azione</button>}
       {list.length === 0 && <div className="empty">Nessuna azione.</div>}
       <div className="card list">
         {list.map(({ e }) => (
@@ -54,7 +55,7 @@ export function EventList({ game, quarter = 0, compact = false, allowAdd = false
                 {roster.map((r) => <option key={r.playerId} value={r.playerId}>{r.number} {shortName(players.find((p) => p.id === r.playerId))}</option>)}
               </select>
             )}
-            {canEdit && <button className="ev-btn del" title="Elimina" onClick={() => deleteEvent(game.id, e.id)}>🗑</button>}
+            {canEdit && <button className="ev-btn del" title="Elimina" onClick={() => deleteEvent(game.id, e.id)}><Ic name="trash" /></button>}
           </div>
         ))}
       </div>

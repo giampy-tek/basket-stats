@@ -299,7 +299,7 @@ input, select { -webkit-user-select: text; user-select: text; font-size: 16px; }
 .bench-row { border-top: 1px solid var(--line); font-size: 17px; }
 .bench-row .nn2 { font-family: var(--display); color: var(--brand); font-size: 22px; margin-right: 4px; }
 .avatar-btn { position: relative; width: 52px; height: 52px; flex: none; border-radius: 13px; overflow: hidden; }
-.avatar-btn::after { content: '📷'; position: absolute; right: 0; bottom: 0; font-size: 12px; background: rgba(255,255,255,.85); border-radius: 8px 0 0 0; padding: 1px 3px; }
+.avatar-btn .cam { position: absolute; right: 0; bottom: 0; background: var(--brand); color: #fff; border-radius: 8px 0 0 0; padding: 3px 4px; display: grid; place-items: center; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chips button { padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font-weight: 600; font-size: 14px; }
@@ -389,3 +389,21 @@ table.stats.season tr.team td.namecol { background: var(--cream); }
 table.stats.season tr.total td.namecol { background: var(--ink); }
 table.stats.season thead th.namecol { background: var(--cream); z-index: 2; }
 table.stats.season td { padding: 10px 7px; }
+
+/* ---------- icone SVG nel colore della squadra ---------- */
+.ic { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.2em; }
+.btn:has(.ic), .pill:has(.ic) { gap: 8px; }
+.btn.ghost .ic, .btn.danger .ic { color: var(--brand); }
+.ico .ic { width: 24px; height: 24px; color: var(--brand); }
+.setup-logo .ic { width: 70px; height: 70px; }
+.ev-btn .ic { width: 20px; height: 20px; color: var(--brand); vertical-align: middle; }
+.round .ic { color: var(--brand); }
+
+/* ---------- falli e bonus ---------- */
+.bonus-tag { background: #ffd23f; color: #17120e; font-weight: 800; font-size: 11px; letter-spacing: .08em; padding: 3px 7px; border-radius: 5px; }
+.pcard .fouls.w, .pcard.sel .fouls.w { background: #ffd23f; color: #2a1f1a; border-radius: 10px; padding: 3px 8px; font-weight: 800; }
+.pcard .fouls.w b, .pcard.sel .fouls.w b { color: #2a1f1a; }
+.pcard .fouls.r, .pcard.sel .fouls.r { background: var(--red); color: #fff; border-radius: 10px; padding: 3px 8px; font-weight: 800; }
+.pcard .fouls.r b, .pcard.sel .fouls.r b { color: #fff; }
+.eject-note { background: #fbe9e7; color: var(--red); border-radius: 12px; padding: 12px 14px; font-weight: 600; margin-bottom: 12px; }
+.sub-row.blocked { opacity: .45; }

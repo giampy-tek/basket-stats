@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore, playerName } from '../store'
-import { Avatar, go, Hero } from '../ui'
+import { Avatar, go, Hero, Ic } from '../ui'
 
 const MAX_CALLED = 12
 
@@ -75,7 +75,7 @@ export default function Prepare({ id }: { id: string }) {
           {[8, 10, 12].map((m) => <button key={m} className={len === m ? 'on' : ''} onClick={() => setLen(m)}>{m} min</button>)}
         </div>
         <div style={{ marginTop: 28 }}>
-          <button className="btn block" disabled={starters.length !== 5} onClick={start}>▶ Inizia partita</button>
+          <button className="btn block" disabled={starters.length !== 5} onClick={start}><Ic name="play" /> Inizia partita</button>
         </div>
       </div>
     </>
