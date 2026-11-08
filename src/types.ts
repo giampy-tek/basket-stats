@@ -65,6 +65,7 @@ export interface Game {
   quarter: number
   quarterLength: number // secondi
   starters: string[]
+  timeoutRule?: 'fiba' | 'quarter' // limiti dei timeout; se manca vale FIBA
   called?: string[] // convocati (max 12) quando il roster ne ha di più; se manca, sono tutti
   events: GameEvent[]
   /** minuti (secondi) e +/- per giocatore e per periodo, per le partite importate da CSV */
@@ -91,6 +92,5 @@ export interface PStat {
   sm: number
   ss: number
   pm: number
-  val: number // valutazione FIBA
-  pir: number // indice di valutazione FIP
+  val: number // valutazione (con falli e stoppate, fatti e subiti)
 }

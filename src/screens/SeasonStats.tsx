@@ -98,7 +98,6 @@ const LEGEND: [string, string][] = [
   ['2P / 3P / TL', 'Segnati (S), tentati (T) e percentuale: tiri da 2, da 3 e liberi'],
   ['F / FS', 'Falli fatti / falli subiti'], ['RO / RD / RT', 'Rimbalzi offensivi, difensivi, totali'],
   ['Rec / PP', 'Palle recuperate / palle perse'], ['Ass', 'Assist'], ['SD / SS', 'Stoppate date / subite'],
-  ['PIR', 'Indice di valutazione FIP: VAL + falli subiti − falli commessi − stoppate subite'],
-  ['VAL', 'Valutazione: punti − tiri sbagliati + rimbalzi + assist − palle perse + recuperi + stoppate date'],
+  ['VAL', 'Valutazione: punti + rimbalzi + assist + recuperi + stoppate date + falli subiti − tiri sbagliati − palle perse − falli fatti − stoppate subite'],
   ['Medie', 'Ogni valore diviso per le partite giocate'],
 ]

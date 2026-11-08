@@ -2,7 +2,7 @@ import type { Game, PStat } from './types'
 
 const blank = (playerId: string): PStat => ({
   playerId, pts: 0, min: 0, m2: 0, a2: 0, m3: 0, a3: 0, mf: 0, af: 0,
-  f: 0, fs: 0, ro: 0, rd: 0, rec: 0, pp: 0, ass: 0, sm: 0, ss: 0, pm: 0, val: 0, pir: 0,
+  f: 0, fs: 0, ro: 0, rd: 0, rec: 0, pp: 0, ass: 0, sm: 0, ss: 0, pm: 0, val: 0,
 })
 
 export interface GameStats {
@@ -22,11 +22,10 @@ export interface GameStats {
 }
 
 export const rt = (s: PStat) => s.ro + s.rd
-/** Valutazione FIBA: punti - tiri sbagliati + rimbalzi + assist - palle perse + recuperi + stoppate date */
+/** Valutazione: punti + rimbalzi + recuperi + assist + stoppate date + falli subiti
+ *  - tiri sbagliati - palle perse - falli fatti - stoppate subite */
 export const calcVal = (s: PStat) =>
-  s.pts + rt(s) + s.rec + s.ass + s.sm - (s.a2 - s.m2) - (s.a3 - s.m3) - (s.af - s.mf) - s.pp
-/** PIR (indice FIP): valutazione FIBA + falli subiti - falli commessi - stoppate subite */
-export const calcPir = (s: PStat) => calcVal(s) + s.fs - s.f - s.ss
+  s.pts + rt(s) + s.rec + s.ass + s.sm + s.fs - (s.a2 - s.m2) - (s.a3 - s.m3) - (s.af - s.mf) - s.pp - s.f - s.ss
 
 /** q = 0 -> tutta la partita, altrimenti solo quel quarto */
 export function computeGame(game: Game, q = 0): GameStats {
@@ -118,13 +117,12 @@ export function computeGame(game: Game, q = 0): GameStats {
   const total = blank('total')
   const keys = ['pts','min','m2','a2','m3','a3','mf','af','f','fs','ro','rd','rec','pp','ass','sm','ss'] as const
   for (const s of [...Object.values(players), team]) for (const k of keys) total[k] += s[k]
-  for (const s of Object.values(players)) { s.val = calcVal(s); s.pir = calcPir(s) }
+  for (const s of Object.values(players)) { s.val = calcVal(s) }
   team.val = 0
   const us = q === 0 ? perQ.us.reduce((a, b) => a + b, 0) : perQ.us[q]
   const opp = q === 0 ? perQ.opp.reduce((a, b) => a + b, 0) : perQ.opp[q]
   total.pm = us - opp
   total.val = calcVal(total)
-  total.pir = calcPir(total)
   return { players, team, total, us, opp, perQ, foulsUs, foulsOpp, timeoutsUs, timeoutsOpp, oppRo, oppRd, onCourt: [...onCourt] }
 }
 

@@ -61,7 +61,7 @@ export function ShotMapPanel({ games, heading }: { games: Game[]; heading?: stri
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 18, alignItems: 'start' }} className="shotmap-grid">
-        <div className="card pad">
+        <div className="card pad shotmap-filters">
           <div className="section-title" style={{ margin: '0 0 8px' }}>Chi</div>
           <div className="chips">
             <button className={who === 'all' ? 'on' : ''} onClick={() => setWho('all')}>Squadra</button>

@@ -73,7 +73,7 @@ export function Court({ onTap, children, under, plain = false, lineWidth = 0.07,
   void hoopTop
   return (
     <svg className="court-svg" viewBox={`0 0 ${COURT_W} ${COURT_L}`} onClick={handle}>
-      {!plain && <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} fill="var(--paint)" />}
+      {!plain && <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} fill="#d87f3d" />}
       {under}
       <g fill="none" stroke={L} strokeWidth={lineWidth} strokeLinecap="round" strokeLinejoin="round">
         {detail && <rect x={PAINT.x1} y={0} width={PAINT.x2 - PAINT.x1} height={PAINT.y2} />}
@@ -96,7 +96,7 @@ export function ShotDot({ x, y, made, label, r = 0.36 }: { x: number; y: number;
     <g>
       <circle cx={x} cy={y} r={r} fill={made ? '#1f7a45' : '#c0252d'} stroke="#fff" strokeWidth={0.06} />
       {label && (
-        <text x={x} y={y} dy="0.36em" textAnchor="middle" fontSize={size} fontWeight={700} fill="#fff" style={{ fontFamily: 'var(--body)', pointerEvents: 'none' }}>
+        <text x={x} y={y} dy="0.36em" textAnchor="middle" fontSize={size} fontWeight={700} fill="#fff" style={{ fontFamily: 'Inter, -apple-system, system-ui, sans-serif', pointerEvents: 'none' }}>
           {label}
         </text>
       )}

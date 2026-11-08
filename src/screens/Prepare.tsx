@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore, playerName } from '../store'
 import { Avatar, go, Hero, Ic } from '../ui'
+import { TIMEOUT_RULES, type TimeoutRule } from '../timeouts'
 
 const MAX_CALLED = 12
 
@@ -8,23 +9,24 @@ export default function Prepare({ id }: { id: string }) {
   const { games, seasons, players, updateGame } = useStore()
   const game = games.find((g) => g.id === id)
   const season = seasons.find((s) => s.id === game?.seasonId)
-  const big = (season?.roster.length ?? 0) > MAX_CALLED // roster più grande di 12: serve la lista dei convocati
-  const [useCalled, setUseCalled] = useState(big || !!game?.called) // con roster fino a 12 i convocati sono facoltativi
-  const [called, setCalled] = useState<string[]>(game?.called ?? [])
-  const [step, setStep] = useState<'call' | 'five'>(big && !game?.called ? 'call' : 'five')
+  // i convocati si scelgono sempre, per ogni squadra; con roster fino a 12 partono tutti selezionati
+  const [called, setCalled] = useState<string[]>(
+    game?.called ?? ((season?.roster.length ?? 0) <= MAX_CALLED ? (season?.roster ?? []).map((r) => r.playerId) : []),
+  )
+  const [step, setStep] = useState<'call' | 'five'>(game?.called ? 'five' : 'call')
   const [starters, setStarters] = useState<string[]>(game?.starters ?? [])
   const [len, setLen] = useState(game ? game.quarterLength / 60 : 10)
+  const [rule, setRule] = useState<TimeoutRule>(game?.timeoutRule ?? 'fiba')
   if (!game || !season) return <Hero title="Partita non trovata" back={{ label: 'Partite', to: '/games' }} />
 
   const roster = [...season.roster].sort((a, b) => a.number - b.number)
-  const pool = useCalled ? roster.filter((r) => called.includes(r.playerId)) : roster
+  const pool = roster.filter((r) => called.includes(r.playerId))
   const toggleCall = (pid: string) => setCalled((c) => (c.includes(pid) ? c.filter((x) => x !== pid) : c.length < MAX_CALLED ? [...c, pid] : c))
   const toggle = (pid: string) =>
     setStarters((s) => (s.includes(pid) ? s.filter((x) => x !== pid) : s.length < 5 ? [...s, pid] : s))
-  const openCall = () => { if (!useCalled) setCalled(roster.slice(0, MAX_CALLED).map((r) => r.playerId)); setUseCalled(true); setStep('call') }
   const goFive = () => { setStarters((s) => s.filter((x) => called.includes(x))); setStep('five') }
   const start = () => {
-    updateGame(game.id, { starters, called: useCalled ? called : undefined, quarterLength: len * 60, status: 'live', quarter: 1 })
+    updateGame(game.id, { starters, called, timeoutRule: rule, quarterLength: len * 60, status: 'live', quarter: 1 })
     go(`/record/${game.id}`)
   }
 
@@ -47,7 +49,9 @@ export default function Prepare({ id }: { id: string }) {
           <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>
             Convocati <span style={{ color: 'var(--brand)' }}>{called.length}/{MAX_CALLED}</span>
           </div>
-          <p style={{ color: 'var(--muted)', marginTop: 0 }}>Il roster ha {roster.length} giocatori: tocca i massimo {MAX_CALLED} che giocano questa partita. Gli altri non compaiono in panchina né nelle statistiche.</p>
+          <p style={{ color: 'var(--muted)', marginTop: 0 }}>
+            {roster.length > MAX_CALLED ? `Il roster ha ${roster.length} giocatori: tocca al massimo i ${MAX_CALLED} che giocano questa partita.` : 'Tocca chi gioca questa partita, togli gli assenti.'} Chi non è convocato non compare in panchina né nelle statistiche.
+          </p>
           <div className="pick-grid">
             {roster.map((r) => <Card key={r.playerId} pid={r.playerId} number={r.number} on={called.includes(r.playerId)} onClick={() => toggleCall(r.playerId)} />)}
           </div>
@@ -62,9 +66,8 @@ export default function Prepare({ id }: { id: string }) {
 
   return (
     <>
-      <Hero title={`vs ${game.opponent}`} sub={useCalled ? `2 di 2 · Quintetto base · ${called.length} convocati` : 'Scegli il quintetto base'}
-        back={useCalled ? undefined : { label: 'Partite', to: `/games/${game.id}` }}
-        right={useCalled ? <button className="pill" onClick={() => setStep('call')}>‹ Convocati</button> : <button className="pill" onClick={openCall}>Scegli i convocati</button>} />
+      <Hero title={`vs ${game.opponent}`} sub={`2 di 2 · Quintetto base · ${called.length} convocati`}
+        right={<button className="pill" onClick={() => setStep('call')}>‹ Convocati</button>} />
       <div className="page">
         <div className="section-title" style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>
           Quintetto base <span style={{ color: 'var(--brand)' }}>{starters.length}/5</span>
@@ -75,6 +78,10 @@ export default function Prepare({ id }: { id: string }) {
         <div className="section-title">Durata quarto</div>
         <div className="seg" style={{ maxWidth: 360 }}>
           {[8, 10, 12].map((m) => <button key={m} className={len === m ? 'on' : ''} onClick={() => setLen(m)}>{m} min</button>)}
+        </div>
+        <div className="section-title">Timeout a disposizione</div>
+        <div className="seg" style={{ maxWidth: 560 }}>
+          {(Object.keys(TIMEOUT_RULES) as TimeoutRule[]).map((k) => <button key={k} className={rule === k ? 'on' : ''} onClick={() => setRule(k)}>{TIMEOUT_RULES[k]}</button>)}
         </div>
         <div style={{ marginTop: 28 }}>
           <button className="btn block" disabled={starters.length !== 5} onClick={start}><Ic name="play" /> Inizia partita</button>

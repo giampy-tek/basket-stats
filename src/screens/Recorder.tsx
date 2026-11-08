@@ -6,14 +6,15 @@ import { isThree } from '../court'
 import { eventLabel, qLabel } from '../eventText'
 import { EventList } from '../EventList'
 import type { Game, GameEvent } from '../types'
+import { timeoutInfo } from '../timeouts'
 import { GameStatsBody } from './GameStats'
 
 type Panel = null | 'subs' | 'stats' | 'bench' | 'team' | 'oppreb'
 
 /** Riga azione: si trascina il pallino centrale a sinistra/destra (oppure si tocca il lato). */
-function DragRow({ mid, left, right, lv, rv, lcls = '', rcls = '', onL, onR, noLeft }: {
-  mid: string; left?: string; right: string; lv?: number; rv?: number; lcls?: string; rcls?: string
-  onL?: () => void; onR: () => void; noLeft?: boolean
+function DragRow({ mid, left, right, lv, rv, lcls = '', rcls = '', onL, onR, noLeft, offL, offR }: {
+  mid: string; left?: string; right: string; lv?: number | string; rv?: number | string; lcls?: string; rcls?: string
+  onL?: () => void; onR: () => void; noLeft?: boolean; offL?: boolean; offR?: boolean
 }) {
   const [dx, setDx] = useState(0)
   const [drag, setDrag] = useState(false)
@@ -27,14 +28,14 @@ function DragRow({ mid, left, right, lv, rv, lcls = '', rcls = '', onL, onR, noL
   const TH = 46
   const end = () => {
     if (!drag) return
-    if (dx <= -TH && !noLeft) fire('l')
-    else if (dx >= TH) fire('r')
+    if (dx <= -TH && !noLeft && !offL) fire('l')
+    else if (dx >= TH && !offR) fire('r')
     setDx(0); setDrag(false)
   }
   return (
     <div className="rowbtn">
       {noLeft ? <span /> : (
-        <button className={`side l ${lcls} ${flash === 'l' ? 'flash' : ''}`} onClick={() => fire('l')}>
+        <button className={`side l ${lcls} ${flash === 'l' ? 'flash' : ''}`} disabled={offL} onClick={() => fire('l')}>
           <small>◀</small>{lv != null && <span>{lv}</span>}<span style={{ fontSize: 16 }}>{left}</span>
         </button>
       )}
@@ -50,7 +51,7 @@ function DragRow({ mid, left, right, lv, rv, lcls = '', rcls = '', onL, onR, noL
         >{mid}</div>
         <span className="arrow r" />
       </div>
-      <button className={`side r ${rcls} ${flash === 'r' ? 'flash' : ''}`} onClick={() => fire('r')}>
+      <button className={`side r ${rcls} ${flash === 'r' ? 'flash' : ''}`} disabled={offR} onClick={() => fire('r')}>
         <span style={{ fontSize: 16 }}>{right}</span>{rv != null && <span>{rv}</span>}<small>▶</small>
       </button>
     </div>
@@ -88,6 +89,8 @@ export default function Recorder({ id }: { id: string }) {
   const s = gs.players[cur]
   const sq = gq.players[cur]
   const q = game.quarter
+  const toUs = timeoutInfo(game, 'us')
+  const toOpp = timeoutInfo(game, 'opp')
   const ejected = onCourt.find((pid) => (gs.players[pid]?.f ?? 0) >= 5 && !dismissed.includes(pid))
 
   const rec = (e: Omit<GameEvent, 'id' | 'q'>) => { pushEvent(game.id, { q, ...e }); setRedo([]) }
@@ -202,13 +205,14 @@ export default function Recorder({ id }: { id: string }) {
               </tbody>
             </table>
           </div>
-          <DragRow mid="Timeout" left="Avv" right="Noi" lv={gq.timeoutsOpp} rv={gq.timeoutsUs}
+          <DragRow mid={`Timeout · ${toUs.label}`} left="Avv" right="Noi" lv={`${toOpp.used}/${toOpp.limit}`} rv={`${toUs.used}/${toUs.limit}`}
+            offL={toOpp.full} offR={toUs.full}
             onL={() => rec({ type: 'timeout', side: 'opp' })} onR={() => rec({ type: 'timeout', side: 'us' })} />
           <button className="bigbtn" onClick={() => setPanel('team')}>
             <b>Squadra</b><span>Palle perse, falli e rimbalzi senza giocatore</span>
           </button>
           <button className="bigbtn" onClick={() => setPanel('oppreb')}>
-            <b>Rimbalzi avversari</b><span><i className="neg">{gq.oppRo} Off</i> · <i>{gq.oppRd} Dif</i></span>
+            <b>Rimbalzi avversari</b><span><i className="neg">{gs.oppRo} Off</i> · <i>{gs.oppRd} Dif</i></span>
           </button>
           <div className="undo-row">
             <button className="undo" disabled={redo.length === 0} onClick={doRedo}>
@@ -290,11 +294,11 @@ export default function Recorder({ id }: { id: string }) {
         <Modal title="Squadra" onClose={close}>
           <p style={{ color: 'var(--muted)', marginTop: 0 }}>Azioni della squadra non attribuite a un giocatore.</p>
           <div className="choice grid">
-            <button className="miss" onClick={() => team({ type: 'steal', kind: 'lost' })}>Palla persa<b>{gq.team.pp}</b></button>
-            <button className="made" onClick={() => team({ type: 'steal', kind: 'rec' })}>Palla recuperata<b>{gq.team.rec}</b></button>
-            <button className="miss" onClick={() => team({ type: 'foul', kind: 'made' })}>Fallo fatto<b>{gq.team.f}</b></button>
-            <button className="made" onClick={() => team({ type: 'reb', kind: 'off' })}>Rimbalzo off.<b>{gq.team.ro}</b></button>
-            <button className="made" onClick={() => team({ type: 'reb', kind: 'def' })}>Rimbalzo dif.<b>{gq.team.rd}</b></button>
+            <button className="miss" onClick={() => team({ type: 'steal', kind: 'lost' })}>Palla persa<b>{gs.team.pp}</b></button>
+            <button className="made" onClick={() => team({ type: 'steal', kind: 'rec' })}>Palla recuperata<b>{gs.team.rec}</b></button>
+            <button className="miss" onClick={() => team({ type: 'foul', kind: 'made' })}>Fallo fatto<b>{gs.team.f}</b></button>
+            <button className="made" onClick={() => team({ type: 'reb', kind: 'off' })}>Rimbalzo off.<b>{gs.team.ro}</b></button>
+            <button className="made" onClick={() => team({ type: 'reb', kind: 'def' })}>Rimbalzo dif.<b>{gs.team.rd}</b></button>
           </div>
           <button className="btn ghost block" style={{ marginTop: 12 }} onClick={close}>Chiudi</button>
         </Modal>
@@ -302,8 +306,8 @@ export default function Recorder({ id }: { id: string }) {
       {panel === 'oppreb' && (
         <Modal title="Rimbalzo avversario" onClose={close}>
           <div className="choice">
-            <button className="miss" onClick={() => team({ type: 'reb', side: 'opp', kind: 'off' })}>Offensivo<b>{gq.oppRo}</b></button>
-            <button className="made" onClick={() => team({ type: 'reb', side: 'opp', kind: 'def' })}>Difensivo<b>{gq.oppRd}</b></button>
+            <button className="miss" onClick={() => team({ type: 'reb', side: 'opp', kind: 'off' })}>Offensivo<b>{gs.oppRo}</b></button>
+            <button className="made" onClick={() => team({ type: 'reb', side: 'opp', kind: 'def' })}>Difensivo<b>{gs.oppRd}</b></button>
           </div>
           <button className="btn ghost block" style={{ marginTop: 12 }} onClick={close}>Chiudi</button>
         </Modal>
@@ -358,7 +362,6 @@ function Ejected({ game, gs, pid, onUndo, onKeep, onDone }: {
   const lastSub = [...game.events].reverse().find((e) => e.q === q && e.type === 'sub')
   const [remaining, setRemaining] = useState(lastSub?.remaining ?? L)
   const [pick, setPick] = useState('')
-  const adj = (d: number) => setRemaining((r) => Math.min(L, Math.max(0, r + d)))
   const numberOf = (id: string) => season.roster.find((r) => r.playerId === id)?.number ?? 0
   const nm = (id: string) => { const p = players.find((x) => x.id === id); return p ? `${p.first[0]}. ${p.last}` : '' }
   const eligible = [...season.roster]
@@ -373,14 +376,7 @@ function Ejected({ game, gs, pid, onUndo, onKeep, onDone }: {
       <div className="modal" style={{ width: 'min(620px, 100%)' }}>
         <h2 style={{ color: 'var(--red)' }}>Giocatore espulso</h2>
         <div className="eject-note">{numberOf(pid)} {nm(pid)} ha 5 falli e deve uscire. Con chi lo vuoi cambiare?</div>
-        <div className="subs-time" style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>TEMPO RIMANENTE ({qLabel(q)})</div>
-          <div className="clock" style={{ fontSize: 44 }}>{fmtTime(remaining)}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Hold onStep={() => adj(5)}>+5s</Hold>
-            <Hold onStep={() => adj(-5)}>−5s</Hold>
-          </div>
-        </div>
+        <div style={{ marginBottom: 12 }}><TimeControl remaining={remaining} L={L} onChange={setRemaining} title={`TEMPO RIMANENTE (${qLabel(q)})`} /></div>
         {eligible.length === 0 ? (
           <p style={{ color: 'var(--muted)' }}>Nessun giocatore disponibile in panchina (tutti gli altri hanno 5 falli o non sono convocati).</p>
         ) : (
@@ -400,6 +396,34 @@ function Ejected({ game, gs, pid, onUndo, onKeep, onDone }: {
           {eligible.length === 0 ? 'Continua senza sostituto' : 'Conferma il cambio'}
         </button>
         <button className="btn ghost block" style={{ marginTop: 8 }} onClick={onUndo}>Annulla l’ultima azione (fallo registrato per errore)</button>
+      </div>
+    </div>
+  )
+}
+
+/** Tempo rimanente nel quarto: rotellina nativa (minuti : secondi) più i pulsanti ±5s. */
+function TimeControl({ remaining, L, onChange, title }: { remaining: number; L: number; onChange: (v: number) => void; title: string }) {
+  const maxMin = Math.floor(L / 60)
+  const min = Math.floor(remaining / 60)
+  const sec = remaining % 60
+  const set = (m: number, s: number) => onChange(Math.min(L, Math.max(0, m * 60 + s)))
+  const adj = (d: number) => onChange(Math.min(L, Math.max(0, remaining + d)))
+  return (
+    <div className="subs-time">
+      <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>{title}</div>
+      <div className="wheel">
+        <select aria-label="Minuti" value={min} onChange={(e) => set(Number(e.target.value), Number(e.target.value) === maxMin ? 0 : sec)}>
+          {Array.from({ length: maxMin + 1 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+        </select>
+        <b>:</b>
+        <select aria-label="Secondi" value={sec} onChange={(e) => set(min, Number(e.target.value))}>
+          {Array.from({ length: 60 }, (_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}</option>)}
+        </select>
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>Tocca minuti o secondi per la rotellina, oppure usa ±5s (tieni premuto per scorrere)</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Hold onStep={() => adj(5)}>+5s</Hold>
+        <Hold onStep={() => adj(-5)}>−5s</Hold>
       </div>
     </div>
   )
@@ -427,19 +451,29 @@ function Subs({ game, gs, onClose, onDone }: { game: Game; gs: ReturnType<typeof
   const L = game.quarterLength
   const lastSub = [...game.events].reverse().find((e) => e.q === q && e.type === 'sub')
   const [remaining, setRemaining] = useState(lastSub?.remaining ?? L)
+  const [mode, setMode] = useState<'swap' | 'five'>('swap')
   const [outSel, setOutSel] = useState<string[]>([])
   const [inSel, setInSel] = useState<string[]>([])
+  const [five, setFive] = useState<string[]>(gs.onCourt) // "imposta i 5 in campo": parte da chi è in campo ora
   const roster = [...season.roster].filter((r) => !game.called || game.called.includes(r.playerId) || gs.onCourt.includes(r.playerId)).sort((a, b) => a.number - b.number)
   const onIds = roster.filter((r) => gs.onCourt.includes(r.playerId))
   const offIds = roster.filter((r) => !gs.onCourt.includes(r.playerId))
-  const adj = (d: number) => setRemaining((r) => Math.min(L, Math.max(0, r + d)))
   const tog = (arr: string[], set: (a: string[]) => void, id: string) => set(arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id])
+  const togFive = (id: string) => setFive((f) => (f.includes(id) ? f.filter((x) => x !== id) : f.length < 5 ? [...f, id] : f))
   const ok = outSel.length > 0 && outSel.length === inSel.length
+  const okFive = five.length === 5 && (five.some((id) => !gs.onCourt.includes(id)) || gs.onCourt.some((id) => !five.includes(id)))
   const save = () => {
     pushEvent(game.id, { q, type: 'sub', remaining, out: outSel, in: inSel })
     onDone()
     onClose()
   }
+  // un solo evento di cambio che porta il campo esattamente ai 5 scelti
+  const saveFive = () => {
+    pushEvent(game.id, { q, type: 'sub', remaining, out: gs.onCourt.filter((id) => !five.includes(id)), in: five.filter((id) => !gs.onCourt.includes(id)) })
+    onDone()
+    onClose()
+  }
+  const foulStyle = (f: number) => ({ color: f >= 5 ? 'var(--red)' : f >= 4 ? '#b58900' : undefined, fontWeight: f >= 4 ? 800 : undefined })
   const List = ({ items, sel, set, title }: { items: typeof roster; sel: string[]; set: (a: string[]) => void; title: string }) => (
     <div>
       <h2 style={{ fontSize: 26, display: 'flex', justifyContent: 'space-between' }}>{title}<span style={{ fontSize: 16, color: 'var(--muted)' }}>{items.length}</span></h2>
@@ -447,11 +481,12 @@ function Subs({ game, gs, onClose, onDone }: { game: Game; gs: ReturnType<typeof
         {items.map((r) => {
           const p = players.find((x) => x.id === r.playerId)
           const st = gs.players[r.playerId]
+          const blocked = title === 'Fuori' && (st?.f ?? 0) >= 5
           return (
-            <button key={r.playerId} className={`sub-row ${sel.includes(r.playerId) ? 'sel' : ''} ${title === 'Fuori' && (st?.f ?? 0) >= 5 ? 'blocked' : ''}`}
-              disabled={title === 'Fuori' && (st?.f ?? 0) >= 5} onClick={() => tog(sel, set, r.playerId)}>
-              <span className="n">{r.number}</span><span>{p?.last} {p?.first}{title === 'Fuori' && (st?.f ?? 0) >= 5 ? ' · espulso (5 falli)' : ''}</span>
-              <span className="m">{fmtTime(st?.min ?? 0)}</span><span style={{ color: (st?.f ?? 0) >= 5 ? 'var(--red)' : (st?.f ?? 0) >= 4 ? '#b58900' : undefined, fontWeight: (st?.f ?? 0) >= 4 ? 800 : undefined }}>{st?.f ?? 0}</span>
+            <button key={r.playerId} className={`sub-row ${sel.includes(r.playerId) ? 'sel' : ''} ${blocked ? 'blocked' : ''}`}
+              disabled={blocked} onClick={() => tog(sel, set, r.playerId)}>
+              <span className="n">{r.number}</span><span>{p?.last} {p?.first}{blocked ? ' · espulso (5 falli)' : ''}</span>
+              <span className="m">{fmtTime(st?.min ?? 0)}</span><span style={foulStyle(st?.f ?? 0)}>{st?.f ?? 0}</span>
             </button>
           )
         })}
@@ -462,23 +497,49 @@ function Subs({ game, gs, onClose, onDone }: { game: Game; gs: ReturnType<typeof
     <div className="overlay">
       <div className="top-nav"><button className="round" onClick={onClose}>‹</button><h1>Cambi</h1><span style={{ width: 54 }} /></div>
       <div className="page stack">
-        <div className="subs-time">
-          <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>TEMPO RIMANENTE NEL PERIODO ({qLabel(q)}) · passo di 5 secondi, tieni premuto per scorrere</div>
-          <div className="clock">{fmtTime(remaining)}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Hold onStep={() => adj(5)}>+5s</Hold>
-            <Hold onStep={() => adj(-5)}>−5s</Hold>
-          </div>
+        <TimeControl remaining={remaining} L={L} onChange={setRemaining} title={`TEMPO RIMANENTE NEL PERIODO (${qLabel(q)})`} />
+        <div className="seg">
+          <button className={mode === 'swap' ? 'on' : ''} onClick={() => setMode('swap')}>Cambio</button>
+          <button className={mode === 'five' ? 'on' : ''} onClick={() => setMode('five')}>Imposta i 5 in campo</button>
         </div>
-        <div className="sub-lists">
-          <List title="In campo" items={onIds} sel={outSel} set={setOutSel} />
-          <List title="Fuori" items={offIds} sel={inSel} set={setInSel} />
-        </div>
-        <div style={{ color: 'var(--muted)', fontSize: 14 }}>Tocca chi esce e chi entra (stesso numero di giocatori), poi salva. Il tempo serve a calcolare minuti e +/-.</div>
-        <div className="sub-lists">
-          <button className="btn ghost" onClick={onClose}>Annulla</button>
-          <button className="btn" disabled={!ok} onClick={save}>Salva cambio</button>
-        </div>
+        {mode === 'swap' ? (
+          <>
+            <div className="sub-lists">
+              <List title="In campo" items={onIds} sel={outSel} set={setOutSel} />
+              <List title="Fuori" items={offIds} sel={inSel} set={setInSel} />
+            </div>
+            <div style={{ color: 'var(--muted)', fontSize: 14 }}>Tocca chi esce e chi entra (stesso numero di giocatori), poi salva. Il tempo serve a calcolare minuti e +/-.</div>
+            <div className="sub-lists">
+              <button className="btn ghost" onClick={onClose}>Annulla</button>
+              <button className="btn" disabled={!ok} onClick={save}>Salva cambio</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <h2 style={{ fontSize: 26, display: 'flex', justifyContent: 'space-between' }}>Chi è in campo<span style={{ fontSize: 16, color: five.length === 5 ? 'var(--green)' : 'var(--muted)' }}>{five.length}/5</span></h2>
+              <div className="card list" style={{ marginTop: 8 }}>
+                {roster.map((r) => {
+                  const p = players.find((x) => x.id === r.playerId)
+                  const st = gs.players[r.playerId]
+                  const blocked = (st?.f ?? 0) >= 5
+                  return (
+                    <button key={r.playerId} className={`sub-row ${five.includes(r.playerId) ? 'sel' : ''} ${blocked ? 'blocked' : ''}`}
+                      disabled={blocked} onClick={() => togFive(r.playerId)}>
+                      <span className="n">{r.number}</span><span>{p?.last} {p?.first}{blocked ? ' · espulso (5 falli)' : ''}</span>
+                      <span className="m">{fmtTime(st?.min ?? 0)}</span><span style={foulStyle(st?.f ?? 0)}>{st?.f ?? 0}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div style={{ color: 'var(--muted)', fontSize: 14 }}>Se i cambi si sono accavallati, segna qui i 5 che sono davvero in campo adesso: l’app registra un unico cambio al tempo scelto.</div>
+            <div className="sub-lists">
+              <button className="btn ghost" onClick={onClose}>Annulla</button>
+              <button className="btn" disabled={!okFive} onClick={saveFive}>Salva i 5 in campo</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -128,8 +128,8 @@ export async function boxscorePng(game: Game, season: Season, players: Player[],
   return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('PNG non generato'))), 'image/png'))
 }
 
-export async function shareOrDownload(blob: Blob, filename: string) {
-  const file = new File([blob], filename, { type: 'image/png' })
+export async function shareOrDownload(blob: Blob, filename: string, type = 'image/png') {
+  const file = new File([blob], filename, { type })
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean }
   if (nav.canShare?.({ files: [file] })) {
     try { await nav.share({ files: [file], title: filename }); return } catch { /* annullato: scarica */ }

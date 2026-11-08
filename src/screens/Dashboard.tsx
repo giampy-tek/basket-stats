@@ -7,6 +7,7 @@ import { cloudEnabled } from '../cloud'
 import { ROLE_LABEL, TeamsModal } from './Teams'
 import { ColorPicker } from './Setup'
 import { buildGame, parseBrpCsv } from '../importBrp'
+import { applyShotPositions, parseShotPositions } from '../importShots'
 import { uid } from '../store'
 
 export default function Dashboard() {
@@ -46,7 +47,17 @@ export default function Dashboard() {
     const games = [...st.games]
     for (const f of Array.from(files)) {
       try {
-        const parsed = parseBrpCsv(await f.text())
+        const text = await f.text()
+        const pos = parseShotPositions(text)
+        if (pos) {
+          const gi = games.findIndex((g) => g.seasonId === season.id && g.date === pos.date && g.opponent.toLowerCase() === pos.opponent.toLowerCase())
+          if (gi < 0) { out.push(`✗ ${pos.opponent} (${pos.date}): partita non trovata, importa prima il suo CSV.`); continue }
+          const r = applyShotPositions(games[gi], { ...season, roster }, pos)
+          games[gi] = r.game
+          out.push(r.applied ? `✓ Posizioni dei tiri ${pos.opponent}: ${r.applied} tiri${r.skipped ? ` (${r.skipped} già a posto)` : ''}` : `⏭ ${pos.opponent}: posizioni già applicate.`)
+          continue
+        }
+        const parsed = parseBrpCsv(text)
         if (games.some((g) => g.seasonId === season.id && g.date === parsed.date && g.opponent.toLowerCase() === parsed.opponent.toLowerCase())) {
           out.push(`⏭ ${parsed.opponent} (${parsed.date}): già presente, saltata.`)
           continue
@@ -116,9 +127,9 @@ export default function Dashboard() {
           {canEdit && <div className="field"><label>Colore della squadra</label><ColorPicker value={brandColor} onChange={setBrandColor} /></div>}
           {canEdit && (<>
           <div className="section-title" style={{ marginTop: 6 }}>Importa da Basket Recorder Pro</div>
-          <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 8px' }}>Scegli uno o più file CSV di partita. Le partite entrano nella stagione corrente; i giocatori si abbinano dal numero di maglia.</p>
+          <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 8px' }}>Scegli uno o più file CSV di partita (o i file JSON con le posizioni dei tiri). Le partite entrano nella stagione corrente; i giocatori si abbinano dal numero di maglia.</p>
           <div className="row-actions" style={{ marginTop: 0, marginBottom: 10 }}>
-            <label className="btn ghost"><Ic name="upload" /> Importa partite (CSV)<input type="file" accept=".csv,text/csv" multiple hidden onChange={(e) => { void importCsv(e.target.files); e.target.value = '' }} /></label>
+            <label className="btn ghost"><Ic name="upload" /> Importa partite (CSV)<input type="file" accept=".csv,text/csv,.json,application/json" multiple hidden onChange={(e) => { void importCsv(e.target.files); e.target.value = '' }} /></label>
           </div>
           {importMsg && <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 14, background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 12, margin: '0 0 14px', userSelect: 'text' }}>{importMsg}</pre>}
           </>)}

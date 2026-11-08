@@ -200,6 +200,9 @@ h1, h2, h3 { font-family: var(--display); text-transform: uppercase; margin: 0; 
 table.stats { border-collapse: collapse; width: 100%; font-size: 15px; font-variant-numeric: tabular-nums; }
 table.stats th { background: var(--cream); font-weight: 600; padding: 10px 8px; text-align: center; white-space: nowrap; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); font-size: 13px; }
 table.stats th.g { font-size: 14px; }
+table.stats th.sortable { cursor: pointer; user-select: none; -webkit-user-select: none; }
+table.stats th.sortable:active { background: var(--brand-soft); }
+.sort-arrow { font-size: 9px; margin-left: 3px; color: var(--brand); }
 table.stats td { padding: 11px 8px; text-align: center; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); white-space: nowrap; }
 table.stats th:first-child, table.stats td:first-child { text-align: left; border-left: 0; position: sticky; left: 0; background: inherit; }
 table.stats td:first-child { background: #fff; font-weight: 500; padding-left: 14px; }
@@ -407,3 +410,16 @@ table.stats.season td { padding: 10px 7px; }
 .pcard .fouls.r b, .pcard.sel .fouls.r b { color: #fff; }
 .eject-note { background: #fbe9e7; color: var(--red); border-radius: 12px; padding: 12px 14px; font-weight: 600; margin-bottom: 12px; }
 .sub-row.blocked { opacity: .45; }
+
+/* rotellina del tempo */
+.wheel { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 6px 0 4px; }
+.wheel b { font-family: var(--display); font-size: 56px; line-height: 1; }
+.wheel select { appearance: none; -webkit-appearance: none; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 6px 22px; font: 700 54px/1.1 var(--display); color: var(--ink); text-align: center; text-align-last: center; min-width: 120px; }
+
+/* durante la cattura per il PDF: niente animazioni, niente comandi, tabelle intere */
+html.pdf-capture *, html.pdf-capture *::before, html.pdf-capture *::after { animation: none !important; transition: none !important; }
+html.pdf-capture .no-pdf, html.pdf-capture .shotmap-filters, html.pdf-capture .seg { display: none !important; }
+html.pdf-capture .shotmap-grid { grid-template-columns: 1fr !important; }
+html.pdf-capture .tablewrap { overflow: visible !important; width: max-content; max-width: none; }
+html.pdf-capture [data-pdf] { background: #fff; }
+html.pdf-capture .wide-pdf { width: max-content; min-width: 100%; }
