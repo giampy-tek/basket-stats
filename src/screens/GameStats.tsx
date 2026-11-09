@@ -45,7 +45,7 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
     setQ(0) // il PDF è sempre di tutta la partita
     await new Promise((r) => setTimeout(r, 250))
     try {
-      const blob = await buildPdf(document.querySelector('[data-pdf-root]') as HTMLElement)
+      const blob = await buildPdf(document.querySelector('[data-pdf-root]') as HTMLElement, `${clubName} - ${game.opponent}`)
       await shareOrDownload(blob, `stats-${game.opponent.toLowerCase().replace(/\W+/g, '-')}-${game.date}.pdf`, 'application/pdf')
     } catch (e) {
       alert('PDF non riuscito: ' + (e instanceof Error ? e.message : 'errore'))
@@ -81,19 +81,19 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
       </div>
       <button className="btn small" disabled={pdfBusy} onClick={exportPdf}><Ic name="download" /> {pdfBusy ? 'Preparo il PDF…' : 'Scarica PDF'}</button>
       </div>
-      <div className="card pad" data-pdf style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+      <div className="card pad" data-pdf="1" style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
         <h2 style={{ fontSize: 28 }}>{clubName}</h2>
         <span style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 48 }}>{gs.us} – {gs.opp}</span>
         <h2 style={{ fontSize: 28 }}>{game.opponent}</h2>
         <span style={{ color: 'var(--muted)', fontSize: 14, marginLeft: 'auto' }}>{[season?.year, season?.category, fmtDate(game.date), game.home ? 'casa' : 'trasferta'].filter(Boolean).join(' · ')}</span>
       </div>
-      <div data-pdf className="wide-pdf">
+      <div data-pdf="1" className="wide-pdf">
       <StatsTable rows={rows} team={gs.team} total={{ ...gs.total, val: gs.total.val }} />
-      <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>
+      <div className="pdf-note" style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>
         S segnati · T tentati · F falli fatti · FS falli subiti · RO/RD/RT rimbalzi off., dif., totali · Rec recuperi · PP palle perse · Ass assist · SM/SS stoppate messe/subite · VAL valutazione · +/- scarto di punti con il giocatore in campo.
       </div>
       </div>
-      <div className="grid2" data-pdf style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      <div className="grid2" data-pdf="2" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <div className="card pad partials">
           <div className="section-title" style={{ margin: '0 0 6px' }}>Parziali</div>
           <table>
@@ -121,7 +121,7 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
         </div>
       </div>
 
-      <div className="card pad wide-pdf" data-pdf>
+      <div className="card pad wide-pdf" data-pdf="2">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Andamento</div>
         <div className="tablewrap">
           <table className="stats">
@@ -147,9 +147,9 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
             </tbody>
           </table>
         </div>
-        <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 0 }}>Il punteggio riparte da 0-0 in ogni periodo. Bonus: 4 o più falli di squadra nel periodo.{game.imported ? ' In questa partita importata l’ordine dei canestri non è quello reale, quindi parità, cambi di vantaggio e parziali non sono calcolabili.' : ''}</p>
+        <p className="pdf-note" style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 0 }}>Il punteggio riparte da 0-0 in ogni periodo. Bonus: 4 o più falli di squadra nel periodo.{game.imported ? ' In questa partita importata l’ordine dei canestri non è quello reale, quindi parità, cambi di vantaggio e parziali non sono calcolabili.' : ''}</p>
       </div>
-      <div className="card pad" data-pdf>
+      <div className="card pad" data-pdf="3">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Tiri per zona</div>
         {game.imported && <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: -4 }}>Partita importata: le percentuali per zona ci sono, ma le posizioni dei tiri sul campo no, quindi le mappe sono vuote.</p>}
         <div className="zones">
@@ -179,11 +179,11 @@ export function GameStatsBody({ game, live = false }: { game: Game; live?: boole
           </div>
         </div>
       </div>
-      <div className="card pad" data-pdf>
+      <div className="card pad" data-pdf="4">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Mappa di tiro</div>
         <ShotMapPanel games={[game]} heading="Squadra" />
       </div>
-      <div data-pdf><ShotDotsMaps shots={shots} numberOf={numberOf} /></div>
+      <div data-pdf="2"><ShotDotsMaps shots={shots} numberOf={numberOf} /></div>
       <div className="card pad no-pdf">
         <div className="section-title" style={{ margin: '0 0 10px' }}>Modifica azioni {q === 0 ? 'della partita' : `del ${qLabel(q)}`}</div>
         <p style={{ color: 'var(--muted)', marginTop: 0, fontSize: 14 }}>Cambia l’esito di un tiro (✓/✗) o i punti (2P/3P), assegna l’azione a un altro giocatore, eliminala o aggiungine una. Le statistiche si aggiornano subito.</p>

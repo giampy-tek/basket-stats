@@ -423,3 +423,4 @@ html.pdf-capture .shotmap-grid { grid-template-columns: 1fr !important; }
 html.pdf-capture .tablewrap { overflow: visible !important; width: max-content; max-width: none; }
 html.pdf-capture [data-pdf] { background: #fff; }
 html.pdf-capture .wide-pdf { width: max-content; min-width: 100%; }
+html.pdf-capture .pdf-note { width: 0; min-width: 100%; }
